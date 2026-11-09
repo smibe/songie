@@ -1,22 +1,43 @@
 import 'package:flutter/material.dart';
 
-import '../data/song_catalog.dart';
+import '../data/song.dart';
+import '../data/song_repository.dart';
 import '../settings/songie_settings.dart';
 import 'settings_screen.dart';
 import 'song_reader_content.dart';
 import 'song_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({required this.settings, super.key});
+  const HomeScreen({
+    required this.settings,
+    required this.songRepository,
+    super.key,
+  });
 
   final SongieSettings settings;
+  final SongRepository songRepository;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  SongieSong? _selectedSong = demoSongs.first;
+  late Stream<List<SongieSong>> _songsStream;
+  String? _selectedSongId;
+
+  @override
+  void initState() {
+    super.initState();
+    _subscribeToCatalog();
+  }
+
+  void _subscribeToCatalog() {
+    _songsStream = widget.songRepository.watchPublishedSongs();
+  }
+
+  void _retryCatalog() {
+    setState(_subscribeToCatalog);
+  }
 
   void _openSettings() {
     Navigator.of(context).push(
@@ -28,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _selectSong(SongieSong song, {required bool wideLayout}) {
     if (wideLayout) {
-      setState(() => _selectedSong = song);
+      setState(() => _selectedSongId = song.id);
       return;
     }
 
@@ -49,73 +70,142 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final wideLayout = constraints.maxWidth >= 900;
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Songie'),
-            actions: [
-              IconButton(
-                tooltip: 'Settings',
-                onPressed: _openSettings,
-                icon: const Icon(Icons.settings_outlined),
-              ),
-              const SizedBox(width: 8),
-            ],
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Songie'),
+        actions: [
+          IconButton(
+            tooltip: 'Settings',
+            onPressed: _openSettings,
+            icon: const Icon(Icons.settings_outlined),
           ),
-          body: wideLayout
-              ? Row(
-                  children: [
-                    SizedBox(
-                      width: 340,
-                      child: SongLibraryPane(
-                        songs: demoSongs,
-                        selectedSongId: _selectedSong?.id,
-                        onSelected: (song) =>
-                            _selectSong(song, wideLayout: true),
-                      ),
-                    ),
-                    const VerticalDivider(width: 1, thickness: 1),
-                    Expanded(
-                      child: _selectedSong == null
-                          ? const Center(child: Text('Select a song'))
-                          : Column(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                    28, 12, 20, 12,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Spacer(),
-                                      TextButton(
-                                        onPressed: () =>
-                                            _openPerformanceMode(_selectedSong!),
-                                        child: const Text('Full screen'),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const Divider(height: 1),
-                                Expanded(
-                                  child: SongReaderContent(
-                                    song: _selectedSong!,
-                                    settings: widget.settings,
-                                  ),
-                                ),
-                              ],
-                            ),
-                    ),
-                  ],
-                )
-              : SongLibraryPane(
-                  songs: demoSongs,
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: StreamBuilder<List<SongieSong>>(
+        stream: _songsStream,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return _CatalogErrorView(
+              error: snapshot.error,
+              onRetry: _retryCatalog,
+            );
+          }
+
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final songs = snapshot.data!;
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final wideLayout = constraints.maxWidth >= 900;
+              if (!wideLayout) {
+                return SongLibraryPane(
+                  songs: songs,
                   onSelected: (song) =>
                       _selectSong(song, wideLayout: false),
-                ),
-        );
-      },
+                );
+              }
+
+              final selectedSong = songs.cast<SongieSong?>().firstWhere(
+                (song) => song?.id == _selectedSongId,
+                orElse: () => songs.isEmpty ? null : songs.first,
+              );
+
+              return Row(
+                children: [
+                  SizedBox(
+                    width: 340,
+                    child: SongLibraryPane(
+                      songs: songs,
+                      selectedSongId: selectedSong?.id,
+                      onSelected: (song) =>
+                          _selectSong(song, wideLayout: true),
+                    ),
+                  ),
+                  const VerticalDivider(width: 1, thickness: 1),
+                  Expanded(
+                    child: selectedSong == null
+                        ? const Center(
+                            child: Text('No published songs available'),
+                          )
+                        : Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  28, 12, 20, 12,
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Spacer(),
+                                    TextButton(
+                                      onPressed: () =>
+                                          _openPerformanceMode(selectedSong),
+                                      child: const Text('Full screen'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Divider(height: 1),
+                              Expanded(
+                                child: SongReaderContent(
+                                  song: selectedSong,
+                                  settings: widget.settings,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _CatalogErrorView extends StatelessWidget {
+  const _CatalogErrorView({required this.error, required this.onRetry});
+
+  final Object? error;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Could not load the song catalog.',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Check your connection and Firestore security rules, then try again.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            if (error != null)
+              SelectableText(
+                error.toString(),
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+            const SizedBox(height: 16),
+            OutlinedButton(
+              onPressed: onRetry,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -187,7 +277,14 @@ class _SongLibraryPaneState extends State<SongLibraryPane> {
         ),
         Expanded(
           child: songs.isEmpty
-              ? const Center(child: Text('No songs found'))
+              ? Center(
+                  child: Text(
+                    widget.songs.isEmpty
+                        ? 'No songs have been published yet.'
+                        : 'No matching songs found.',
+                    textAlign: TextAlign.center,
+                  ),
+                )
               : ListView.separated(
                   itemCount: songs.length,
                   padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
