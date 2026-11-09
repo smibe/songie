@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../auth/songie_auth_service.dart';
@@ -163,6 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildAccountAction() {
     if (_user == null) {
+      if (!kIsWeb) return const SizedBox.shrink();
       return TextButton.icon(
         onPressed: _openSignIn,
         icon: const Icon(Icons.login),
