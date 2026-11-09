@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 
+import 'data/song_repository.dart';
 import 'screens/home_screen.dart';
 import 'settings/songie_settings.dart';
 
 class SongieApp extends StatelessWidget {
-  const SongieApp({required this.settings, super.key});
+  const SongieApp({
+    required this.settings,
+    required this.songRepository,
+    super.key,
+  });
 
   final SongieSettings settings;
+  final SongRepository songRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +40,10 @@ class SongieApp extends StatelessWidget {
           displayColor: foreground,
         ),
       ),
-      home: HomeScreen(settings: settings),
+      home: HomeScreen(
+        settings: settings,
+        songRepository: songRepository,
+      ),
     );
   }
 }
