@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "prod": "songie-prod"
+  },
+  "targets": {},
+  "etags": {}
+}
