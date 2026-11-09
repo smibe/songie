@@ -108,10 +108,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               }
 
-              final selectedSong = songs.cast<SongieSong?>().firstWhere(
-                (song) => song?.id == _selectedSongId,
-                orElse: () => songs.isEmpty ? null : songs.first,
-              );
+              SongieSong? selectedSong;
+              for (final song in songs) {
+                if (song.id == _selectedSongId) {
+                  selectedSong = song;
+                  break;
+                }
+              }
+              selectedSong ??= songs.isEmpty ? null : songs.first;
 
               return Row(
                 children: [
