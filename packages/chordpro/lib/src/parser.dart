@@ -55,10 +55,21 @@ class ChordProParser {
     }
 
     final lines = source.split(RegExp(r'\r\n|\n|\r'));
-    for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    var firstLine = 0;
+    var lastLine = lines.length;
+    // Ignore framing whitespace commonly introduced by multiline literals
+    // and text editors, but preserve blank lines inside the song.
+    while (firstLine < lastLine && lines[firstLine].trim().isEmpty) {
+      firstLine++;
+    }
+    while (lastLine > firstLine && lines[lastLine - 1].trim().isEmpty) {
+      lastLine--;
+    }
+
+    for (var lineIndex = firstLine; lineIndex < lastLine; lineIndex++) {
       final rawLine = lines[lineIndex];
-      final directiveMatch = RegExp(r'^\s*\{([^{}]+)\}\s*$')
-          .firstMatch(rawLine);
+      final directiveMatch =
+          RegExp(r'^\s*\{([^{}]+)\}\s*$').firstMatch(rawLine);
 
       if (directiveMatch != null) {
         final directive = directiveMatch.group(1)!.trim();
@@ -83,15 +94,19 @@ class ChordProParser {
           case 'start_of_chorus':
           case 'soc':
             beginSection(SongSectionKind.chorus, value);
+            break;
           case 'start_of_verse':
           case 'sov':
             beginSection(SongSectionKind.verse, value);
+            break;
           case 'start_of_bridge':
           case 'sob':
             beginSection(SongSectionKind.bridge, value);
+            break;
           case 'start_of_tab':
           case 'sot':
             beginSection(SongSectionKind.tab, value);
+            break;
           case 'end_of_chorus':
           case 'eoc':
           case 'end_of_verse':
@@ -101,6 +116,7 @@ class ChordProParser {
           case 'end_of_tab':
           case 'eot':
             beginSection(SongSectionKind.verse);
+            break;
           case 'comment':
           case 'c':
           case 'comment_italic':
@@ -109,6 +125,7 @@ class ChordProParser {
               chords: const [],
               isComment: true,
             ));
+            break;
           case 'new_page':
           case 'column_break':
           case 'chorus':
@@ -117,7 +134,9 @@ class ChordProParser {
             // first renderer; they are valid and should not be warnings.
             break;
           default:
-            warnings.add('Unsupported directive {$directive} at line $lineNumber.');
+            warnings.add(
+              'Unsupported directive {$directive} at line $lineNumber.',
+            );
         }
         continue;
       }
