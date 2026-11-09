@@ -1,19 +1,4 @@
-import 'package:chordpro/chordpro.dart';
-
-class SongieSong {
-  const SongieSong({
-    required this.id,
-    required this.source,
-    required this.document,
-  });
-
-  final String id;
-  final String source;
-  final ChordProSong document;
-
-  String get title => document.title ?? 'Untitled song';
-  String get artist => document.artist ?? '';
-}
+import 'song.dart';
 
 const _morningLight = '''
 {title: Morning Light}
@@ -104,22 +89,8 @@ const _longRoadHome = '''
 {end_of_chorus}
 ''';
 
-const _parser = ChordProParser();
-
 final demoSongs = <SongieSong>[
-  SongieSong(
-    id: 'morning-light',
-    source: _morningLight,
-    document: _parser.parse(_morningLight),
-  ),
-  SongieSong(
-    id: 'quiet-river',
-    source: _quietRiver,
-    document: _parser.parse(_quietRiver),
-  ),
-  SongieSong(
-    id: 'long-road-home',
-    source: _longRoadHome,
-    document: _parser.parse(_longRoadHome),
-  ),
+  SongieSong.fromChordPro(id: 'morning-light', source: _morningLight),
+  SongieSong.fromChordPro(id: 'quiet-river', source: _quietRiver),
+  SongieSong.fromChordPro(id: 'long-road-home', source: _longRoadHome),
 ];
