@@ -33,12 +33,29 @@ dart test
 
 ## Firebase deployment
 
-From the repository root, link the Firebase project and deploy the Firestore rules and indexes:
+From the repository root, link the Firebase project once:
 
 ```sh
 firebase use --add
+```
+
+Deploy Firestore rules and indexes:
+
+```sh
 firebase deploy --only firestore:rules,firestore:indexes
 ```
+
+Build and deploy the Flutter web app:
+
+```sh
+cd apps/songie
+flutter pub get
+flutter build web --release
+cd ../..
+firebase deploy --only hosting
+```
+
+Firebase Hosting serves the Flutter build from `apps/songie/build/web` over HTTPS. Hosting and Firestore can be deployed independently.
 
 To initialize catalog documents from ChordPro files, see [`tools/catalog-seed/README.md`](tools/catalog-seed/README.md). The seed tool uses the Firebase Admin SDK and writes only new documents.
 
