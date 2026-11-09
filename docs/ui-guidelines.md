@@ -23,12 +23,23 @@ Songie should feel like a clean, dependable digital songbook. The songs are the 
 
 ### Song display
 
-- Show song title and artist near the top.
+- Show song title and artist near the top in normal reading mode.
 - Display chords as text above the exact lyric position represented by each ChordPro marker.
 - Keep lyrics readable at arm's length on a phone or tablet.
 - Allow vertical scrolling and a simple way back to the library.
 - Provide transposition controls without adding a row of decorative music icons.
 - When chord display is disabled, render lyrics without chord labels; do not alter the stored source.
+
+### Tablet full-screen performance mode (must-have)
+
+- The tablet must offer a dedicated full-screen song view designed for a music stand.
+- The song fills the available screen; hide the library, navigation pane, and non-essential application chrome.
+- Make lyric and chord text large and comfortably spaced, with a user-adjustable text size.
+- Support both portrait and landscape, with landscape as a particularly useful performance orientation.
+- Keep controls unobtrusive: reveal them on tap and let them disappear again.
+- Provide an easy-to-discover exit from full-screen mode.
+- Keep the display awake while this mode is active.
+- The reader must remain clear and useful with guitar chords switched off.
 
 ### Settings
 
@@ -40,7 +51,7 @@ Songie should feel like a clean, dependable digital songbook. The songs are the 
 ## Responsive behavior
 
 - **Phones:** use a single-page navigation stack: library, song display, settings.
-- **Tablets:** support a two-pane layout with the library on the left and the selected song on the right. The song reader should also work in a full-screen presentation.
+- **Tablets:** the library may use a two-pane layout for browsing, but opening performance mode must switch to a true full-screen song display.
 - Use available width to improve readability; do not simply stretch phone controls across a tablet.
 - Keep the same settings and song behavior across device sizes.
 
@@ -53,4 +64,4 @@ Songie should feel like a clean, dependable digital songbook. The songs are the 
 
 ## First implementation scope
 
-Implement only the library, song display, and settings surfaces. The first preference is chord visibility. More elaborate setlist management and live collaboration should come after the core reading experience works well.
+Implement the library, song display, settings, and tablet performance mode. Chord visibility and the full-screen tablet reader are core requirements. More elaborate setlist management and live collaboration should come after the core reading experience works well.
