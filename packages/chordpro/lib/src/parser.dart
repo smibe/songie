@@ -167,7 +167,13 @@ class ChordProParser {
       final prefix = sourceLine.substring(sourceOffset, match.start);
       text.write(prefix);
       textOffset += prefix.length;
-      chords.add(ChordPlacement(symbol: symbol, position: textOffset));
+      if (symbol.isEmpty) {
+        final literalMarker = match.group(0)!;
+        text.write(literalMarker);
+        textOffset += literalMarker.length;
+      } else {
+        chords.add(ChordPlacement(symbol: symbol, position: textOffset));
+      }
       sourceOffset = match.end;
     }
 
