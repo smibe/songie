@@ -1,0 +1,14 @@
+{
+  "name": "songie-catalog-seed",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "seed:morning-light": "node ./seed-song.mjs ./samples/morning-light.pro --project songie-prod"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0"
+  }
+}
