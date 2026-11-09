@@ -69,6 +69,43 @@ Search can initially filter the downloaded published catalog in memory. Add a se
 
 Custom claims can only be assigned from a trusted Admin SDK environment. Do not expose a way for the client to grant its own admin role. Firebase Console writes are performed with project-owner/editor privileges and can be used to seed the first songs.
 
+## Add the first song in Firebase Console
+
+Open **Firestore Database → Data → Start collection** and create a collection named `songs`. Create a document with ID `morning-light` and the following fields:
+
+| Field | Type | Value |
+|---|---|---|
+| `title` | string | `Morning Light` |
+| `artist` | string | `Songie Demo` |
+| `key` | string | `G` |
+| `titleSearch` | string | `morning light` |
+| `published` | boolean | `true` |
+| `schemaVersion` | number | `1` |
+| `createdAt` | timestamp | Current timestamp |
+| `updatedAt` | timestamp | Current timestamp |
+
+Add a `chordPro` field with this original sample content (including the line breaks):
+
+```text
+{title: Morning Light}
+{artist: Songie Demo}
+{key: G}
+{start_of_verse: Verse 1}
+[G]When the morning [D]opens
+[Em]And the road is [C]clear
+[G]Take a quiet [D]moment
+[C]Let the day begin [G]here
+{end_of_verse}
+{start_of_chorus: Chorus}
+[C]Step by step, [G]mile by mile
+[D]Leave a little [Em]room to smile
+[C]The road is [G]wide, the sky is [D]bright
+[C]Keep on walking [D]toward the [G]light
+{end_of_chorus}
+```
+
+After saving, the song should appear in Songie automatically because the client listens to the published catalog in realtime.
+
 ## Initial admin workflow
 
 1. Add or edit a song document in Firebase Console.
