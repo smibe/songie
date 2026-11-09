@@ -1,5 +1,7 @@
 import 'package:chordpro/chordpro.dart';
 
+import 'song_access.dart';
+
 /// A song in the shared Songie catalog.
 class SongieSong {
   const SongieSong({
@@ -9,6 +11,7 @@ class SongieSong {
     required this.key,
     required this.source,
     required this.document,
+    this.visibility = SongVisibility.friends,
   });
 
   factory SongieSong.fromChordPro({
@@ -49,6 +52,7 @@ class SongieSong {
       key: key is String ? key : parsed.key ?? '',
       source: source,
       document: parsed,
+      visibility: SongVisibility.fromValue(data['visibility']),
     );
   }
 
@@ -56,6 +60,7 @@ class SongieSong {
   final String title;
   final String artist;
   final String key;
+  final SongVisibility visibility;
 
   /// Original ChordPro source; never rewrite it just to change display settings.
   final String source;
