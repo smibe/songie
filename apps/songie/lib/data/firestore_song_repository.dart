@@ -22,10 +22,15 @@ class FirestoreSongRepository implements SongRepository {
       SongCatalogAccess.admin => const ['public', 'friends', 'private'],
     };
 
-    return _firestore
+    Query<Map<String, dynamic>> query = _firestore
         .collection(collectionName)
-        .where('published', isEqualTo: true)
-        .where('visibility', whereIn: visibleValues)
+        .where('visibility', whereIn: visibleValues);
+
+    if (access != SongCatalogAccess.admin) {
+      query = query.where('published', isEqualTo: true);
+    }
+
+    return query
         .orderBy('titleSearch')
         .snapshots()
         .map((snapshot) => snapshot.docs.map((document) {
