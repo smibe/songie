@@ -3,7 +3,7 @@ description: A simple cross-platform songbook for singers and guitarists.
 publish_to: none
 version: 0.1.0+1
 environment:
-  sdk: '>=3.4.0 <4.0.0'
+  sdk: '>=3.6.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -11,6 +11,8 @@ dependencies:
   chordpro:
     path: ../../packages/chordpro
   shared_preferences: ^2.3.5
+  firebase_core: ^5.1.0
+  cloud_firestore: ^7.1.0
   wakelock_plus: ^1.4.0
 
 dev_dependencies:
