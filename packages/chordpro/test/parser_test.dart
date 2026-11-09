@@ -62,6 +62,14 @@ Lyrics
       expect(song.warnings.single, contains('some_future_directive'));
     });
 
+    test('keeps Unicode characters intact before chord markers', () {
+      final song = parser.parse('🙂[C]Hello');
+      final line = song.sections.single.lines.single;
+
+      expect(line.text, '🙂Hello');
+      expect(line.chords.single.position, 2);
+    });
+
     test('preserves unmatched square brackets as lyric text', () {
       final song = parser.parse('A [bracketed note');
       expect(song.sections.single.lines.single.text, 'A [bracketed note');
