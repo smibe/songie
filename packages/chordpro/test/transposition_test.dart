@@ -16,6 +16,13 @@ void main() {
       expect(transposeChordSymbol('C', 1, preferFlats: true), 'Db');
     });
 
+    test('can prefer flat notation for slash chords', () {
+      expect(
+        transposeChordSymbol('Amaj7/C#', 1, preferFlats: true),
+        'Bbmaj7/D',
+      );
+    });
+
     test('preserves non-chord labels', () {
       expect(transposeChordSymbol('N.C.', 3), 'N.C.');
     });
