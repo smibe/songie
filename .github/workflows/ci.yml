@@ -39,6 +39,9 @@ jobs:
         with:
           channel: stable
           cache: true
+      - name: Generate web runner
+        working-directory: apps/songie
+        run: flutter create --empty --platforms=web .
       - name: Install dependencies
         working-directory: apps/songie
         run: flutter pub get
@@ -51,3 +54,6 @@ jobs:
       - name: Test
         working-directory: apps/songie
         run: flutter test
+      - name: Build web release
+        working-directory: apps/songie
+        run: flutter build web --release
