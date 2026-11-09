@@ -81,7 +81,11 @@ function readDirective(source, names) {
     'im',
   );
 
-  return expression.exec(source)?.[1]?.trim() ?? '';
+  const normalizedSource = source
+    .replace(/^\uFEFF/, '')
+    .replace(/\r\n?/g, '\n');
+
+  return expression.exec(normalizedSource)?.[1]?.trim() ?? '';
 }
 
 function normalizeTitle(value) {
