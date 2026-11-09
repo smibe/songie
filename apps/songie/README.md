@@ -53,4 +53,9 @@ To run against a connected device, select it with `flutter devices` or pass `-d 
 - The ChordPro package is a local path dependency at `../../packages/chordpro`.
 - User display preferences are stored locally with `shared_preferences`.
 - Performance mode hides system UI and enables a screen wakelock with `wakelock_plus`.
-- Firebase is not connected yet. The current app uses in-memory demo songs. The shared catalog design is documented in `../../docs/firestore-catalog.md`; public users will read published songs, while catalog writes will be admin-only.
+- Firebase Core and Cloud Firestore are initialized at startup. The library subscribes to published songs in the shared `songs` collection.
+- Public catalog reads do not require a user account. Firestore Security Rules restrict client writes to users with a trusted `admin` custom claim.
+- The generated `lib/firebase_options.dart` is required to build the app. It contains Firebase app identifiers, not service-account private credentials; commit it so other developers and CI can build the project.
+- Firestore rules and indexes live at the repository root. Deploy them from the repository root with `firebase deploy --only firestore:rules,firestore:indexes` after linking the Firebase project with `firebase use --add`.
+- The first published song can be added manually in Firebase Console using the instructions in `../../docs/firestore-catalog.md`.
+- On web, Firestore persistent cache is enabled where the browser permits it; failure to acquire browser persistence does not prevent app startup.
