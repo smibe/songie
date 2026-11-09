@@ -156,33 +156,23 @@ class ChordProParser {
   SongLine _parseLyricLine(String sourceLine) {
     final text = StringBuffer();
     final chords = <ChordPlacement>[];
+    final chordPattern = RegExp(r'\[([^\[\]]+)\]');
     var sourceOffset = 0;
     var textOffset = 0;
 
-    while (sourceOffset < sourceLine.length) {
-      if (sourceLine[sourceOffset] == '[') {
-        final closingBracket = sourceLine.indexOf(']', sourceOffset + 1);
-        if (closingBracket > sourceOffset + 1) {
-          final symbol = sourceLine
-              .substring(sourceOffset + 1, closingBracket)
-              .trim();
-          if (symbol.isNotEmpty && !symbol.contains('[')) {
-            chords.add(ChordPlacement(
-              symbol: symbol,
-              position: textOffset,
-            ));
-            sourceOffset = closingBracket + 1;
-            continue;
-          }
-        }
-      }
+    for (final match in chordPattern.allMatches(sourceLine)) {
+      final symbol = match.group(1)!.trim();
+      if (symbol.isEmpty) continue;
 
-      final character = sourceLine.substring(sourceOffset, sourceOffset + 1);
-      text.write(character);
-      sourceOffset++;
-      textOffset++;
+      final prefix = sourceLine.substring(sourceOffset, match.start);
+      text.write(prefix);
+      textOffset += prefix.length;
+      chords.add(ChordPlacement(symbol: symbol, position: textOffset));
+      sourceOffset = match.end;
     }
 
+    final suffix = sourceLine.substring(sourceOffset);
+    text.write(suffix);
     return SongLine(text: text.toString(), chords: chords);
   }
 }
