@@ -158,8 +158,10 @@ allowed for that user. The app builds one of these queries:
 - Friend: `visibility in ["public", "friends"]`
 - Admin: `visibility in ["public", "friends", "private"]`
 
-All queries are ordered by `titleSearch` and use the composite index in
-`firestore.indexes.json`.
+The public and friend queries include `published == true`. The admin
+query intentionally omits that filter so administrators can also review
+unpublished drafts. All queries are ordered by `titleSearch` and use one of
+the composite indexes in `firestore.indexes.json`.
 
 ## Offline behavior
 
