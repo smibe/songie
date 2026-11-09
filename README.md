@@ -1,44 +1,39 @@
 # Songie
 
-Songie is a cross-platform songbook for musicians. It displays lyrics with guitar chords, supports transposition, and will eventually let a group share a live setlist and follow the same song together.
+Songie is a cross-platform songbook for musicians. It displays lyrics with guitar chords, supports transposition, and is designed to make songs easy to read on phones and tablets.
 
-## Project status
+## Project structure
 
-Early development. The first milestone is a reliable, UI-independent ChordPro parser. The Flutter application and Firebase integration will follow once the song model and text format are stable.
+- `packages/chordpro/` — UI-independent Dart ChordPro parser, song model, and music utilities.
+- `apps/songie/` — Flutter app for the song library, song reader, settings, and tablet performance mode.
+- `docs/` — architecture and UI guidelines.
 
-## Planned capabilities
+## First application slice
 
-- Read and render ChordPro songs.
-- Keep chords anchored to the exact positions in lyric lines.
-- Transpose songs without changing the stored source.
-- Browse, search, favourite, and organize songs into setlists.
-- Work offline with locally cached songs.
-- Share a live session using a short join code.
+The Flutter app currently uses original in-memory demo songs. It includes a searchable library, phone song view, tablet two-pane layout, persistent chord visibility and lyric size preferences, and full-screen performance mode with screen-awake behavior.
 
-## Repository layout
+See [`apps/songie/README.md`](apps/songie/README.md) for local Flutter setup and run instructions.
 
-The initial implementation is organized around a reusable ChordPro core:
-
-- `packages/chordpro/` — pure Dart parser, song model, and tests.
-- `apps/songie/` — planned Flutter application.
-- `docs/` — architecture and product decisions.
-
-## Development
-
-The ChordPro package is intentionally independent of Flutter so it can be tested without a UI framework.
+## ChordPro package
 
 ```sh
 cd packages/chordpro
 dart pub get
+dart format .
+dart analyze
 dart test
 ```
 
-Flutter setup instructions will be added when the app scaffold is introduced.
+## Design
 
-## Song format
+- Keep the interface simple and neutral.
+- Render chord symbols as text above their lyric anchors.
+- Let users disable chord display without changing the stored ChordPro source.
+- Make tablet full-screen performance reading a first-class experience.
+- Keep songs available offline.
 
-ChordPro is the source format for songs. See the [ChordPro project](https://www.chordpro.org/) for the format reference.
+See [`docs/architecture.md`](docs/architecture.md) and [`docs/ui-guidelines.md`](docs/ui-guidelines.md).
 
-## Copyright note
+## Content and copyright
 
-Songie should not scrape or redistribute commercial lyrics without permission. A song being freely viewable on a website does not mean its lyrics are licensed for reuse. The app should support user-provided ChordPro files and appropriately licensed or public-domain material.
+Support user-provided ChordPro files and appropriately licensed or public-domain material. Do not assume that lyrics are reusable merely because they can be viewed for free online.
