@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  chordpro:
+    name: ChordPro package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      - name: Install dependencies
+        working-directory: packages/chordpro
+        run: dart pub get
+      - name: Check formatting
+        working-directory: packages/chordpro
+        run: dart format --output=none --set-exit-if-changed .
+      - name: Analyze
+        working-directory: packages/chordpro
+        run: dart analyze
+      - name: Test
+        working-directory: packages/chordpro
+        run: dart test
+
+  flutter:
+    name: Flutter application
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Install dependencies
+        working-directory: apps/songie
+        run: flutter pub get
+      - name: Check formatting
+        working-directory: apps/songie
+        run: dart format --output=none --set-exit-if-changed .
+      - name: Analyze
+        working-directory: apps/songie
+        run: flutter analyze
+      - name: Test
+        working-directory: apps/songie
+        run: flutter test
