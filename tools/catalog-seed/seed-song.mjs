@@ -7,15 +7,17 @@ import { applicationDefault, initializeApp } from 'firebase-admin/app';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 
 function usage() {
-  console.error(\`Usage:
-  node seed-song.mjs <song.chopro> [--id <document-id>] [--project <project-id>] [--publish]
-
-Options:
-  --id       Firestore document ID. Defaults to a slug generated from the title.
-  --project  Firebase project ID. Defaults to songie-prod.
-  --publish  Publish immediately. Without this flag the song is created as a draft.
-
-The script creates a new document and never overwrites an existing one.\`);
+  console.error([
+    'Usage:',
+    '  node seed-song.mjs <song.chopro> [--id <document-id>] [--project <project-id>] [--publish]',
+    '',
+    'Options:',
+    '  --id       Firestore document ID. Defaults to a slug generated from the title.',
+    '  --project  Firebase project ID. Defaults to songie-prod.',
+    '  --publish  Publish immediately. Without this flag the song is created as a draft.',
+    '',
+    'The script creates a new document and never overwrites an existing one.',
+  ].join('\n'));
 }
 
 function parseArguments(argv) {
@@ -75,7 +77,7 @@ function parseArguments(argv) {
 function readDirective(source, names) {
   const alternatives = names.join('|');
   const expression = new RegExp(
-    '^[\\\\t ]*\\\\{[\\\\t ]*(?:' + alternatives + ')[\\\\t ]*:[\\\\t ]*(.*?)[\\\\t ]*\\\\}[\\\\t ]*$',
+    '^[\\t ]*\\{[\\t ]*(?:' + alternatives + ')[\\t ]*:[\\t ]*(.*?)[\\t ]*\\}[\\t ]*$',
     'im',
   );
 
