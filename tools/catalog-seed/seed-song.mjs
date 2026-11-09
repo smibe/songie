@@ -15,6 +15,7 @@ function usage() {
     '  --id       Firestore document ID. Defaults to a slug generated from the title.',
     '  --project  Firebase project ID. Defaults to songie-prod.',
     '  --publish  Publish immediately. Without this flag the song is created as a draft.',
+    '  --visibility  public, friends (default), or private.',
     '',
     'The script creates a new document and never overwrites an existing one.',
   ].join('\n'));
