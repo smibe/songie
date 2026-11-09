@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:songie/data/song.dart';
+import 'package:songie/data/song_access.dart';
 
 void main() {
   group('SongieSong', () {
@@ -45,6 +46,7 @@ void main() {
       expect(song.artist, 'Catalog Artist');
       expect(song.key, 'D');
       expect(song.source, source);
+      expect(song.visibility, SongVisibility.friends);
       expect(song.document.sections.single.lines.single.chords, hasLength(2));
     });
 
