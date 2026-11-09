@@ -70,6 +70,14 @@ Lyrics
       expect(line.chords.single.position, 2);
     });
 
+    test('preserves empty chord markers as literal text', () {
+      final song = parser.parse('Before [] after');
+      final line = song.sections.single.lines.single;
+
+      expect(line.text, 'Before [] after');
+      expect(line.chords, isEmpty);
+    });
+
     test('preserves unmatched square brackets as lyric text', () {
       final song = parser.parse('A [bracketed note');
       expect(song.sections.single.lines.single.text, 'A [bracketed note');
