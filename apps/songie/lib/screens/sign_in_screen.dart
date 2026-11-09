@@ -78,7 +78,7 @@ class _SignInScreenState extends State<SignInScreen> {
     } on FirebaseAuthException catch (error) {
       _showError(_friendlyAuthError(error));
     } on FormatException catch (error) {
-      _showError(error.message);
+      _showError(error.message.toString());
     } catch (error) {
       _showError(error.toString());
     } finally {
