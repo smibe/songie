@@ -1,19 +1,15 @@
-# Songie catalog seed tool
+# Songie catalog and membership tools
 
-A small server-side utility for creating song documents in the shared Firestore
-catalog. It reads a ChordPro file and derives `title`, `artist`, `key`,
-`titleSearch`, and the document ID. It also writes the canonical source,
-timestamps, `published`, and `schemaVersion`.
-
-The tool uses the Firebase Admin SDK. It must only be run on a trusted
-development machine or server; never bundle it into the Flutter app.
+Small trusted Node.js utilities for the shared Firestore song catalog. They use
+the Firebase Admin SDK and must only run on a trusted development machine or
+server. Never bundle them into the Flutter app.
 
 ## Requirements
 
 - Node.js 22 or newer
 - npm
-- Google Cloud Application Default Credentials for an account that can write
-  to the `songs` collection in the target Firebase project
+- Google Cloud Application Default Credentials for an account with permission
+  to manage Firebase Authentication users and write Firestore documents
 
 ## Setup (PowerShell)
 
@@ -24,56 +20,114 @@ npm install
 gcloud auth application-default login
 ```
 
-The Google account used for Application Default Credentials needs an
-appropriate Firestore write permission in the target project.
+The Google account used for Application Default Credentials needs suitable
+Firebase Authentication and Firestore permissions in the target project.
 
-If you use a service-account key instead, keep the JSON file outside the
-repository and set the environment variable in the current PowerShell session:
+## Enable passwordless sign-in once
+
+In Firebase Console for project `songie-prod`:
+
+1. Open **Authentication → Sign-in method**.
+2. Enable **Email/Password**.
+3. Also enable **Email link (passwordless sign-in)**.
+4. Under **Authentication → Settings → Authorized domains**, add
+   `songie-prod.web.app` if it is not already listed.
+
+The Flutter web app sends a one-time link to the user's email address. The
+person must open the link in a browser and enter the same email address if
+they open it on another device/browser.
+
+## Bootstrap the first administrator
+
+1. Open Songie at `https://songie-prod.web.app`.
+2. Sign in once using the email address that should own the catalog.
+3. From this directory, grant that Firebase Auth user the administrator role:
 
 ```powershell
-$env:GOOGLE_APPLICATION_CREDENTIALS = "C:\\secure\\songie-service-account.json"
+npm run member -- --email you@example.com --role admin
 ```
 
-Never commit a service-account key or put it in the Flutter app.
+The account must have completed a Firebase sign-in before it can be found by
+email. This command writes `members/{uid}`; ordinary users cannot create or
+edit their own membership.
 
-## Create the first song
+## Grant or revoke friend access
 
-From this directory, create Morning Light as a draft:
+Ask a friend to open Songie and sign in once. Then run:
+
+```powershell
+npm run member -- --email friend@example.com --role friend
+```
+
+To revoke access:
+
+```powershell
+npm run member -- --email friend@example.com --revoke
+```
+
+The change takes effect through the live membership listener. Friends can read
+songs with `visibility: "public"` and `visibility: "friends"`. Only admins
+can read `visibility: "private"` songs and unpublished songs.
+
+## Import a song
+
+The importer reads a ChordPro file and derives `title`, `artist`, `key`,
+`titleSearch`, and the document ID. It writes the canonical source,
+timestamps, `published`, `visibility`, and `schemaVersion`.
+
+Create Morning Light as a friends-only draft:
 
 ```powershell
 npm run seed:morning-light
 ```
 
-To publish it immediately so it appears in Songie:
+Publish it to the friend circle:
 
 ```powershell
 npm run seed:morning-light -- --publish
 ```
 
-## Import another ChordPro file
+Import another ChordPro file:
 
 ```powershell
-node .\\seed-song.mjs .\\samples\\my-song.pro --project songie-prod --publish
+node .\\seed-song.mjs .\\samples\\my-song.pro --project songie-prod --publish --visibility friends
 ```
 
-The script reads the ChordPro `{title: ...}`, `{artist: ...}`, and
-`{key: ...}` directives. It accepts the short aliases `{t: ...}`,
-`{a: ...}`, and `{k: ...}` as well. The Firestore document ID is generated
-from the title unless `--id` is supplied.
+Allowed visibility values:
 
-By default, songs are created with `published: false`. Add `--publish` to
-publish a song immediately.
+- `public`: anyone can read the song, including without signing in.
+- `friends`: only active friends and admins can read it.
+- `private`: only admins can read it.
 
-**Safety:** creation uses Firestore's `create()` operation. If the document ID
-already exists, the script stops and leaves the existing document untouched.
-It never silently overwrites an existing song.
+The default is `friends`. Add `--visibility public` or
+`--visibility private` to override it. By default, songs are created with
+`published: false`; add `--publish` to publish immediately.
 
-## What it writes
+Creation uses Firestore's `create()` operation. If the document ID already
+exists, the script stops and leaves the existing document untouched.
 
-- Collection: `songs`
-- `title`, `artist`, `key`
-- `chordPro` (the original file contents)
-- `titleSearch` (normalized lowercase title)
-- `published`
-- `schemaVersion: 1`
-- `createdAt` and `updatedAt` (server timestamps)
+## Migrate existing songs
+
+Existing song documents created before the visibility field was introduced
+should be treated as friends-only. Run this once before deploying the new
+Firestore rules:
+
+```powershell
+npm run migrate:visibility
+```
+
+The migration adds `visibility: "friends"` to documents with a missing or
+invalid visibility value. It does not change publication status or song text.
+
+## What a member document contains
+
+The membership utility writes documents to `members/{firebase-auth-uid}`:
+
+- `uid`
+- `email`
+- `role` (`admin` or `friend`)
+- `active`
+- `createdAt`
+- `updatedAt`
+
+Only trusted Admin SDK credentials can assign or revoke membership.
