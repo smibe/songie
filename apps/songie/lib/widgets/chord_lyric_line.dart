@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:chordpro/chordpro.dart';
 import 'package:flutter/material.dart';
 
@@ -55,7 +53,7 @@ class ChordLyricLine extends StatelessWidget {
     var chordBandHeight = 0.0;
 
     for (final chord in line.chords) {
-      final offset = chord.position.clamp(0, line.text.length);
+      final offset = chord.position.clamp(0, line.text.length).toInt();
       final prefix = TextPainter(
         text: TextSpan(
           text: line.text.substring(0, offset),
@@ -71,10 +69,13 @@ class ChordLyricLine extends StatelessWidget {
       )..layout();
 
       positionedChords.add(
-        _PositionedChord(chord.symbol, prefix.width, chordPainter.width),
+        _PositionedChord(chord.symbol, prefix.width),
       );
-      contentWidth = math.max(contentWidth, prefix.width + chordPainter.width);
-      chordBandHeight = math.max(chordBandHeight, chordPainter.height);
+      final chordRight = prefix.width + chordPainter.width;
+      if (chordRight > contentWidth) contentWidth = chordRight;
+      if (chordPainter.height > chordBandHeight) {
+        chordBandHeight = chordPainter.height;
+      }
     }
 
     return Padding(
@@ -112,9 +113,8 @@ class ChordLyricLine extends StatelessWidget {
 }
 
 class _PositionedChord {
-  const _PositionedChord(this.symbol, this.left, this.width);
+  const _PositionedChord(this.symbol, this.left);
 
   final String symbol;
   final double left;
-  final double width;
 }
