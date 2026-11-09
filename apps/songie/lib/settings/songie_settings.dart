@@ -38,7 +38,8 @@ class SongieSettings extends ChangeNotifier {
   }
 
   Future<void> setLyricsFontSize(double value) async {
-    final clamped = value.clamp(minLyricsFontSize, maxLyricsFontSize);
+    final clamped =
+        value.clamp(minLyricsFontSize, maxLyricsFontSize).toDouble();
     if (_lyricsFontSize == clamped) return;
     _lyricsFontSize = clamped;
     notifyListeners();
