@@ -58,8 +58,8 @@ service cloud.firestore {
         )
         || (
           resource.data.published == true
-          && resource.data.visibility == 'friends'
           && isFriend()
+          && resource.data.visibility in ['public', 'friends']
         );
 
       // Only admins can change the shared catalog.
