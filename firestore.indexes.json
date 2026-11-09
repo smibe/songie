@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "songs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "published", "order": "ASCENDING" },
+        { "fieldPath": "titleSearch", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
