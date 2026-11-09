@@ -7,7 +7,7 @@ import { applicationDefault, initializeApp } from 'firebase-admin/app';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 
 function usage() {
-  console.error(`Usage:
+  console.error(\`Usage:
   node seed-song.mjs <song.chopro> [--id <document-id>] [--project <project-id>] [--publish]
 
 Options:
@@ -15,7 +15,7 @@ Options:
   --project  Firebase project ID. Defaults to songie-prod.
   --publish  Publish immediately. Without this flag the song is created as a draft.
 
-The script creates a new document and never overwrites an existing one.`);
+The script creates a new document and never overwrites an existing one.\`);
 }
 
 function parseArguments(argv) {
@@ -44,7 +44,7 @@ function parseArguments(argv) {
     if (argument === '--id' || argument === '--project') {
       const value = argv[index + 1];
       if (!value || value.startsWith('--')) {
-        throw new Error(`Missing value for ${argument}.`);
+        throw new Error('Missing value for ' + argument + '.');
       }
 
       if (argument === '--id') options.documentId = value;
@@ -54,7 +54,7 @@ function parseArguments(argv) {
     }
 
     if (argument.startsWith('--')) {
-      throw new Error(`Unknown option: ${argument}`);
+      throw new Error('Unknown option: ' + argument);
     }
 
     if (options.sourcePath !== null) {
@@ -75,7 +75,7 @@ function parseArguments(argv) {
 function readDirective(source, names) {
   const alternatives = names.join('|');
   const expression = new RegExp(
-    `^[\\t ]*\\{[\\t ]*(?:${alternatives})[\\t ]*:[\\t ]*(.*?)[\\t ]*\\}[\\t ]*$`,
+    '^[\\\\t ]*\\\\{[\\\\t ]*(?:' + alternatives + ')[\\\\t ]*:[\\\\t ]*(.*?)[\\\\t ]*\\\\}[\\\\t ]*$',
     'im',
   );
 
@@ -85,10 +85,10 @@ function readDirective(source, names) {
 function normalizeTitle(value) {
   return value
     .normalize('NFKD')
-    .replace(/\\p{M}/gu, '')
+    .replace(/\p{M}/gu, '')
     .toLowerCase()
     .trim()
-    .replace(/\\s+/g, ' ');
+    .replace(/\s+/g, ' ');
 }
 
 function createDocumentId(title) {
@@ -151,18 +151,18 @@ async function main() {
   } catch (error) {
     if (error.code === 6 || error.code === 'already-exists') {
       throw new Error(
-        `Song "${documentId}" already exists. Nothing was changed; choose another --id or edit it in the admin workflow.`,
+        'Song "' + documentId + '" already exists. Nothing was changed; choose another --id or edit it in the admin workflow.',
       );
     }
     throw error;
   }
 
-  console.log(`Created songs/${documentId} in project ${options.projectId}.`);
-  console.log(`Title: ${title}`);
-  console.log(`Published: ${options.published}`);
+  console.log('Created songs/' + documentId + ' in project ' + options.projectId + '.');
+  console.log('Title: ' + title);
+  console.log('Published: ' + options.published);
 }
 
 main().catch((error) => {
-  console.error(`Seed failed: ${error.message}`);
+  console.error('Seed failed: ' + error.message);
   process.exitCode = 1;
 });
