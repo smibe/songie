@@ -71,12 +71,14 @@ service cloud.firestore {
     }
 
     match /members/{memberUid} {
-      // Users can inspect only their own membership. Admins can manage the
-      // complete membership list.
-      allow get: if isAdmin()
-        || (request.auth != null && request.auth.uid == memberUid);
-      allow list: if isAdmin();
-      allow create, update, delete: if isAdmin();
+      // Reading one's own membership is the bootstrap path used by the app.
+      // Do not call isAdmin() here: that helper reads this same document and
+      // would make this rule recursively evaluate itself.
+      allow get: if request.auth != null && request.auth.uid == memberUid;
+
+      // Membership is managed only by the trusted Admin SDK utilities.
+      // Client-side users, including admins, cannot list or mutate members.
+      allow list, create, update, delete: if false;
     }
   }
 }
