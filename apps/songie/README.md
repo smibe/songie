@@ -2,7 +2,7 @@
 
 This is the cross-platform Flutter client for Songie. The current first slice includes:
 
-- A searchable demo song library.
+- A searchable demo song library (temporary; the planned production source is a shared Firestore catalog).
 - A phone song reader and tablet two-pane library/reader layout.
 - ChordPro chord labels rendered as plain text above lyric positions.
 - Persistent chord visibility and lyric text-size settings.
@@ -53,4 +53,4 @@ To run against a connected device, select it with `flutter devices` or pass `-d 
 - The ChordPro package is a local path dependency at `../../packages/chordpro`.
 - User display preferences are stored locally with `shared_preferences`.
 - Performance mode hides system UI and enables a screen wakelock with `wakelock_plus`.
-- Firebase is intentionally not connected yet. The first application slice uses in-memory demo songs so the reading experience can be tested independently.
+- Firebase is not connected yet. The current app uses in-memory demo songs. The shared catalog design is documented in `../../docs/firestore-catalog.md`; public users will read published songs, while catalog writes will be admin-only.
