@@ -1,0 +1,46 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    function validSong(data) {
+      return data.keys().hasAll([
+          'title',
+          'artist',
+          'key',
+          'chordPro',
+          'titleSearch',
+          'published',
+          'schemaVersion',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.title is string
+        && data.artist is string
+        && data.key is string
+        && data.chordPro is string
+        && data.chordPro.size() <= 900000
+        && data.titleSearch is string
+        && data.published is bool
+        && data.schemaVersion == 1
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    match /songs/{songId} {
+      // Public users can read published songs. Admins can also inspect drafts.
+      // Public catalog queries must include `where('published', isEqualTo: true)`.
+      allow get, list: if isAdmin() || resource.data.published == true;
+
+      // Only a trusted admin identity may change the shared catalog.
+      allow create: if isAdmin() && validSong(request.resource.data);
+      allow update: if isAdmin()
+        && validSong(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isAdmin();
+    }
+  }
+}
