@@ -18,7 +18,7 @@ String transposeChordSymbol(
   final bassLetter = match.group(4);
   final bassAccidental = match.group(5) ?? '';
   final useFlats = preferFlats ??
-      match.group(2) == 'b' || bassAccidental == 'b';
+      (match.group(2) == 'b' || bassAccidental == 'b');
 
   final transposedRoot = _transposeNote(root, semitones, useFlats);
   if (bassLetter == null) return '$transposedRoot$quality';
