@@ -191,7 +191,7 @@ class _SongLibraryPaneState extends State<SongLibraryPane> {
               : ListView.separated(
                   itemCount: songs.length,
                   padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
-                  separatorBuilder: (_, _) => const Divider(
+                  separatorBuilder: (context, index) => const Divider(
                     height: 1,
                     indent: 12,
                     endIndent: 12,
