@@ -1,8 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
 
+import 'auth/songie_auth_service.dart';
 import 'data/firestore_song_repository.dart';
+import 'data/membership_repository.dart';
 import 'firebase_options.dart';
 import 'settings/songie_settings.dart';
 import 'songie_app.dart';
@@ -13,6 +16,15 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  final authService = SongieAuthService(FirebaseAuth.instance);
+  try {
+    await authService.completePendingSignIn();
+  } catch (error) {
+    // An expired or invalid email link should not prevent public songs from
+    // loading. The sign-in screen will let the user request a fresh link.
+    debugPrint('Could not complete email-link sign-in: $error');
+  }
 
   final firestore = FirebaseFirestore.instance;
   try {
@@ -29,11 +41,14 @@ Future<void> main() async {
 
   final settings = await SongieSettings.load();
   final songRepository = FirestoreSongRepository(firestore);
+  final membershipRepository = FirestoreMembershipRepository(firestore);
 
   runApp(
     SongieApp(
       settings: settings,
+      authService: authService,
       songRepository: songRepository,
+      membershipRepository: membershipRepository,
     ),
   );
 }
