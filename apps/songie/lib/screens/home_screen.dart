@@ -116,6 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
               }
               selectedSong ??= songs.isEmpty ? null : songs.first;
+              final songForDisplay = selectedSong;
 
               return Row(
                 children: [
@@ -123,14 +124,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: 340,
                     child: SongLibraryPane(
                       songs: songs,
-                      selectedSongId: selectedSong?.id,
+                      selectedSongId: songForDisplay?.id,
                       onSelected: (song) =>
                           _selectSong(song, wideLayout: true),
                     ),
                   ),
                   const VerticalDivider(width: 1, thickness: 1),
                   Expanded(
-                    child: selectedSong == null
+                    child: songForDisplay == null
                         ? const Center(
                             child: Text('No published songs available'),
                           )
@@ -145,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     const Spacer(),
                                     TextButton(
                                       onPressed: () =>
-                                          _openPerformanceMode(selectedSong),
+                                          _openPerformanceMode(songForDisplay),
                                       child: const Text('Full screen'),
                                     ),
                                   ],
@@ -154,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               const Divider(height: 1),
                               Expanded(
                                 child: SongReaderContent(
-                                  song: selectedSong,
+                                  song: songForDisplay,
                                   settings: widget.settings,
                                 ),
                               ),
