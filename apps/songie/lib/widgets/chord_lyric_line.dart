@@ -63,7 +63,10 @@ class ChordLyricLine extends StatelessWidget {
       // Measure the caret in the complete lyric run. Measuring a separate
       // prefix can differ slightly because of kerning and text shaping.
       final chordLeft = lyricPainter
-          .getOffsetForCaret(TextPosition(offset: offset), Rect.zero)
+          .getOffsetForCaret(
+            TextPosition(offset: offset),
+            Rect.fromLTWH(0, 0, 1, lyricPainter.height),
+          )
           .dx;
       final chordPainter = TextPainter(
         text: TextSpan(text: chord.symbol, style: chordStyle),
