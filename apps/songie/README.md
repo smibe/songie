@@ -20,6 +20,23 @@ flutter create --empty --platforms=android,ios,web .
 
 This creates the Android, iOS, and web runner projects without replacing the application code in `lib/`.
 
+## Run in a browser
+
+After generating the web runner (the platform-generation command above includes it), start Chrome or Edge and run:
+
+```sh
+flutter devices
+flutter run -d chrome
+```
+
+To create an optimized web release:
+
+```sh
+flutter build web --release
+```
+
+The deployable files are written to `build/web`. They can be hosted on Firebase Hosting or another static web host. Firebase Hosting configuration and deployment will be added once the Firebase project is connected.
+
 ## Get dependencies and run
 
 ```sh
