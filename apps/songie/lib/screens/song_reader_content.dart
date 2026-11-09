@@ -1,4 +1,3 @@
-import 'package:chordpro/chordpro.dart';
 import 'package:flutter/material.dart';
 
 import '../data/song_catalog.dart';
