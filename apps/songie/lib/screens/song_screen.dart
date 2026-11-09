@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
-import '../data/song_catalog.dart';
+import '../data/song.dart';
 import '../settings/songie_settings.dart';
 import 'song_reader_content.dart';
 
