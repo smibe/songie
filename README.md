@@ -40,6 +40,8 @@ firebase use --add
 firebase deploy --only firestore:rules,firestore:indexes
 ```
 
+To initialize catalog documents from ChordPro files, see [`tools/catalog-seed/README.md`](tools/catalog-seed/README.md). The seed tool uses the Firebase Admin SDK and writes only new documents.
+
 ## Design
 
 - Keep the interface simple and neutral.
