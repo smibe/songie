@@ -16,8 +16,8 @@ enum SongVisibility {
       'public' => SongVisibility.public,
       'private' => SongVisibility.private,
       'friends' => SongVisibility.friends,
-      // Songs created before visibility was introduced are private to the
-      // invited circle until they are explicitly reviewed.
+      // Songs created before visibility was introduced are limited to
+      // the invited circle until they are explicitly reviewed.
       _ => SongVisibility.friends,
     };
   }
