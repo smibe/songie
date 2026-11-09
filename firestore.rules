@@ -2,8 +2,24 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function memberPath(uid) {
+      return /databases/$(database)/documents/members/$(uid);
+    }
+
+    function hasActiveMembership() {
+      return request.auth != null
+        && exists(memberPath(request.auth.uid))
+        && get(memberPath(request.auth.uid)).data.active == true;
+    }
+
+    function isFriend() {
+      return hasActiveMembership()
+        && get(memberPath(request.auth.uid)).data.role in ['friend', 'admin'];
+    }
+
     function isAdmin() {
-      return request.auth != null && request.auth.token.admin == true;
+      return hasActiveMembership()
+        && get(memberPath(request.auth.uid)).data.role == 'admin';
     }
 
     function validSong(data) {
@@ -14,6 +30,7 @@ service cloud.firestore {
           'chordPro',
           'titleSearch',
           'published',
+          'visibility',
           'schemaVersion',
           'createdAt',
           'updatedAt'
@@ -25,22 +42,41 @@ service cloud.firestore {
         && data.chordPro.size() <= 900000
         && data.titleSearch is string
         && data.published is bool
+        && data.visibility in ['public', 'friends', 'private']
         && data.schemaVersion == 1
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
     }
 
     match /songs/{songId} {
-      // Public users can read published songs. Admins can also inspect drafts.
-      // Public catalog queries must include `where('published', isEqualTo: true)`.
-      allow get, list: if isAdmin() || resource.data.published == true;
+      // Admins can inspect all songs. Other users can only read published
+      // public songs or published friend-circle songs.
+      allow get, list: if isAdmin()
+        || (
+          resource.data.published == true
+          && resource.data.visibility == 'public'
+        )
+        || (
+          resource.data.published == true
+          && resource.data.visibility == 'friends'
+          && isFriend()
+        );
 
-      // Only a trusted admin identity may change the shared catalog.
+      // Only admins can change the shared catalog.
       allow create: if isAdmin() && validSong(request.resource.data);
       allow update: if isAdmin()
         && validSong(request.resource.data)
         && request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if isAdmin();
+    }
+
+    match /members/{memberUid} {
+      // Users can inspect only their own membership. Admins can manage the
+      // complete membership list.
+      allow get: if isAdmin()
+        || (request.auth != null && request.auth.uid == memberUid);
+      allow list: if isAdmin();
+      allow create, update, delete: if isAdmin();
     }
   }
 }
