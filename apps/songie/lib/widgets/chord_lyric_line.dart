@@ -20,11 +20,15 @@ class ChordLyricLine extends StatelessWidget {
       return SizedBox(height: fontSize * 0.9);
     }
 
-    final lyricStyle = TextStyle(
-      fontSize: fontSize,
-      height: 1.35,
-      color: line.isComment ? const Color(0xFF666666) : const Color(0xFF202020),
-      fontStyle: line.isComment ? FontStyle.italic : FontStyle.normal,
+    final lyricStyle = DefaultTextStyle.of(context).style.merge(
+      TextStyle(
+        fontSize: fontSize,
+        height: 1.35,
+        color: line.isComment
+            ? const Color(0xFF666666)
+            : const Color(0xFF202020),
+        fontStyle: line.isComment ? FontStyle.italic : FontStyle.normal,
+      ),
     );
 
     if (!showChords || line.chords.isEmpty || line.isComment) {
@@ -34,11 +38,13 @@ class ChordLyricLine extends StatelessWidget {
       );
     }
 
-    final chordStyle = TextStyle(
-      fontSize: fontSize * 0.72,
-      height: 1.15,
-      fontWeight: FontWeight.w600,
-      color: const Color(0xFF555555),
+    final chordStyle = DefaultTextStyle.of(context).style.merge(
+      TextStyle(
+        fontSize: fontSize * 0.72,
+        height: 1.15,
+        fontWeight: FontWeight.w600,
+        color: const Color(0xFF555555),
+      ),
     );
     final textDirection = Directionality.of(context);
     final textScaler = MediaQuery.textScalerOf(context);
@@ -54,14 +60,11 @@ class ChordLyricLine extends StatelessWidget {
 
     for (final chord in line.chords) {
       final offset = chord.position.clamp(0, line.text.length).toInt();
-      final prefix = TextPainter(
-        text: TextSpan(
-          text: line.text.substring(0, offset),
-          style: lyricStyle,
-        ),
-        textDirection: textDirection,
-        textScaler: textScaler,
-      )..layout();
+      // Measure the caret in the complete lyric run. Measuring a separate
+      // prefix can differ slightly because of kerning and text shaping.
+      final chordLeft = lyricPainter
+          .getOffsetForCaret(TextPosition(offset: offset), Rect.zero)
+          .dx;
       final chordPainter = TextPainter(
         text: TextSpan(text: chord.symbol, style: chordStyle),
         textDirection: textDirection,
@@ -69,9 +72,9 @@ class ChordLyricLine extends StatelessWidget {
       )..layout();
 
       positionedChords.add(
-        _PositionedChord(chord.symbol, prefix.width),
+        _PositionedChord(chord.symbol, chordLeft),
       );
-      final chordRight = prefix.width + chordPainter.width;
+      final chordRight = chordLeft + chordPainter.width;
       if (chordRight > contentWidth) contentWidth = chordRight;
       if (chordPainter.height > chordBandHeight) {
         chordBandHeight = chordPainter.height;
