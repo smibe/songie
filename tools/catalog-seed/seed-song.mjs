@@ -28,6 +28,7 @@ function parseArguments(argv) {
       ?? process.env.GCLOUD_PROJECT
       ?? 'songie-prod',
     published: false,
+    visibility: 'friends',
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -40,6 +41,16 @@ function parseArguments(argv) {
 
     if (argument === '--publish') {
       options.published = true;
+      continue;
+    }
+
+    if (argument === '--visibility') {
+      const value = argv[index + 1];
+      if (!value || value.startsWith('--')) {
+        throw new Error('Missing value for --visibility.');
+      }
+      options.visibility = value;
+      index += 1;
       continue;
     }
 
@@ -121,6 +132,10 @@ async function main() {
   const key = readDirective(source, ['key', 'k']);
   const documentId = options.documentId ?? createDocumentId(title);
 
+  if (!['public', 'friends', 'private'].includes(options.visibility)) {
+    throw new Error('Visibility must be public, friends, or private.');
+  }
+
   if (!/^[a-z0-9][a-z0-9-]{0,127}$/.test(documentId)) {
     throw new Error(
       'Document ID must contain 1-128 lowercase letters, digits, or hyphens, and start with a letter or digit.',
@@ -147,6 +162,7 @@ async function main() {
     chordPro: source,
     titleSearch: normalizeTitle(title),
     published: options.published,
+    visibility: options.visibility,
     schemaVersion: 1,
     createdAt: now,
     updatedAt: now,
@@ -166,6 +182,7 @@ async function main() {
   console.log('Created songs/' + documentId + ' in project ' + options.projectId + '.');
   console.log('Title: ' + title);
   console.log('Published: ' + options.published);
+  console.log('Visibility: ' + options.visibility);
 }
 
 main().catch((error) => {
