@@ -1,0 +1,22 @@
+name: songie
+description: A simple cross-platform songbook for singers and guitarists.
+publish_to: none
+version: 0.1.0+1
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  chordpro:
+    path: ../../packages/chordpro
+  shared_preferences: ^2.3.5
+  wakelock_plus: ^1.4.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
