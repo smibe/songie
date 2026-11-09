@@ -69,7 +69,24 @@ Search can initially filter the downloaded published catalog in memory. Add a se
 
 Custom claims can only be assigned from a trusted Admin SDK environment. Do not expose a way for the client to grant its own admin role. Firebase Console writes are performed with project-owner/editor privileges and can be used to seed the first songs.
 
-## Add the first song in Firebase Console
+## Add the first song with the seed tool
+
+For a quicker initial setup, use the reusable Node.js utility in
+`tools/catalog-seed/`. It imports a ChordPro file and fills all required
+Firestore fields automatically. See [the seed tool instructions](../tools/catalog-seed/README.md).
+
+From `tools/catalog-seed`, run `npm install`, authenticate with
+`gcloud auth application-default login`, then run:
+
+```powershell
+npm run seed:morning-light -- --publish
+```
+
+This creates `songs/morning-light` as a published document in project
+`songie-prod`. Without `--publish`, the document is created as a draft.
+Existing documents are never overwritten.
+
+## Add the first song manually in Firebase Console
 
 Open **Firestore Database → Data → Start collection** and create a collection named `songs`. Create a document with ID `morning-light` and the following fields:
 
