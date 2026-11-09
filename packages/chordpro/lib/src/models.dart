@@ -33,7 +33,7 @@ class ChordProSong {
 class SongSection {
   SongSection({
     required this.kind,
-    required this.lines,
+    required List<SongLine> lines,
     this.label,
   }) : lines = List.unmodifiable(lines);
 
@@ -53,15 +53,15 @@ class SongLine {
   final String text;
 
   /// Chords positioned at offsets in [text], measured in UTF-16 code units.
-  /// This matches Dart's String indexing and can be converted to rendered
-  /// pixel positions by measuring the corresponding text prefix.
+  /// These offsets can be converted to rendered pixel positions by measuring
+  /// the corresponding text prefix using the same font and text direction.
   final List<ChordPlacement> chords;
 
   /// True for `{comment: ...}` and `{comment_italic: ...}` directives.
   final bool isComment;
 }
 
-/// A chord symbol anchored at a character offset in a [SongLine].
+/// A chord symbol anchored at a UTF-16 code-unit offset in a [SongLine].
 class ChordPlacement {
   const ChordPlacement({required this.symbol, required this.position});
 
