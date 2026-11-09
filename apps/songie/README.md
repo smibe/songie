@@ -35,7 +35,7 @@ To create an optimized web release:
 flutter build web --release
 ```
 
-The deployable files are written to `build/web`. They can be hosted on Firebase Hosting or another static web host. Firebase Hosting configuration and deployment will be added once the Firebase project is connected.
+The deployable files are written to `build/web`. They are deployed to Firebase Hosting from the repository root; the root `firebase.json` points to `apps/songie/build/web`.
 
 ## Get dependencies and run
 
