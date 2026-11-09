@@ -162,8 +162,6 @@ class ChordProParser {
 
     for (final match in chordPattern.allMatches(sourceLine)) {
       final symbol = match.group(1)!.trim();
-      if (symbol.isEmpty) continue;
-
       final prefix = sourceLine.substring(sourceOffset, match.start);
       text.write(prefix);
       textOffset += prefix.length;
