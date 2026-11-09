@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../data/song_catalog.dart';
+import '../data/song.dart';
 import '../settings/songie_settings.dart';
 import '../widgets/chord_lyric_line.dart';
 
