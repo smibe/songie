@@ -16,19 +16,16 @@ Future<void> main() async {
   );
 
   final firestore = FirebaseFirestore.instance;
-  if (kIsWeb) {
-    try {
-      await firestore.enablePersistence(
-        const PersistenceSettings(synchronizeTabs: true),
-      );
-    } on FirebaseException catch (error) {
-      // A browser can reject persistent storage (for example, another tab
-      // may already own the persistence lease). Firestore still works with
-      // its in-memory cache, so this must not prevent the app from starting.
-      debugPrint(
-        'Firestore web persistence unavailable (${error.code}): ${error.message}',
-      );
-    }
+  try {
+    // Configure persistence before the first Firestore operation. This
+    // setting is supported by the current FlutterFire API on web and mobile.
+    firestore.settings = const Settings(persistenceEnabled: true);
+  } on FirebaseException catch (error) {
+    // Persistent storage may be unavailable in a restricted browser context.
+    // Firestore can still operate with its in-memory cache.
+    debugPrint(
+      'Firestore persistence unavailable (${error.code}): ${error.message}',
+    );
   }
 
   final settings = await SongieSettings.load();
