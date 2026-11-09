@@ -6,6 +6,7 @@
 - **Keep the domain independent of Flutter.** Parsing, song models, and music utilities belong in pure Dart packages.
 - **Offline first.** A musician must be able to open a saved song without a network connection.
 - **Simple visual language.** Use restrained neutral colors and typography; avoid decorative controls and unnecessary icons.
+- **Performance readability is essential.** A guitarist must be able to read the current song comfortably from a music stand.
 - **Treat content licensing explicitly.** User imports and public-domain or licensed catalogs are supported; scraping and redistributing commercial lyrics is not assumed to be permitted.
 
 ## Initial repository shape
@@ -37,14 +38,29 @@ The offset is a text position, not a pixel coordinate. The Flutter renderer shou
 2. **Song display:** readable lyrics with optional chord text positioned above the corresponding lyric positions. The reader supports scrolling and transposition.
 3. **Settings:** a small set of display preferences, beginning with a persistent `Show guitar chords` on/off setting and adjustable text size.
 
-Keep the library and song reader as distinct navigation destinations. On phones, use a normal push/pop navigation flow. On wider tablets, the same destinations can be presented as a two-pane library/detail layout; the song reader should also be usable full-screen.
+Keep the library and song reader as distinct navigation destinations. On phones, use a normal push/pop navigation flow. On wider tablets, a two-pane library/detail layout is useful for browsing, but it must never be the only way to read a song.
+
+## Tablet performance mode (must-have)
+
+Full-screen song display on tablets is a core requirement. A guitarist should be able to place the tablet on a music stand and read the song clearly without the library pane or normal application chrome taking up valuable space.
+
+- Provide a dedicated, explicit full-screen performance mode on tablets.
+- Hide the library pane, navigation rails, and other non-essential application chrome while in performance mode.
+- Use the tablet's available display area for the song, with adjustable large lyrics and chord text.
+- Keep chords as plain text aligned above their lyric anchors; honor the `Show guitar chords` preference.
+- Keep scrolling smooth and predictable. Provide a clear, unobtrusive way to leave performance mode.
+- Show performance controls on tap and allow them to disappear again, so they do not obscure the lyrics.
+- Support landscape orientation and remain usable in portrait orientation.
+- Keep the display awake while performance mode is active, and restore normal device behavior when it is exited.
+
+Phone song display remains a focused single-page reader and should reuse the same song-rendering component and preferences.
 
 The `Show guitar chords` preference must affect only rendering, not the stored ChordPro source. Turning chords off should leave lyric text and line spacing readable without chord labels.
 
 ## Planned application layers
 
-1. **Presentation:** Flutter screens and widgets (library, song reader, settings, setlists, live session).
-2. **Application:** use cases such as import song, search library, transpose, update display preferences, create setlist, and join session.
+1. **Presentation:** Flutter screens and widgets (library, song reader, tablet performance mode, settings, setlists, live session).
+2. **Application:** use cases such as import song, search library, transpose, update display preferences, enter/exit performance mode, create setlist, and join session.
 3. **Domain:** song and setlist models plus ChordPro and music utilities.
 4. **Infrastructure:** local persistence, Firebase Authentication, Cloud Firestore, and session synchronization.
 
