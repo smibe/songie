@@ -87,10 +87,24 @@ Publish it to the friend circle:
 npm run seed:morning-light -- --publish
 ```
 
-Import another ChordPro file:
+Import another ChordPro file or an aligned plain-text chord sheet:
 
 ```powershell
 node .\\seed-song.mjs .\\samples\\my-song.pro --project songie-prod --publish --visibility friends
+node .\\seed-song.mjs `"C:\\Songs\\my-song.txt`" --project songie-prod --publish --visibility friends
+```
+
+The importer detects the format automatically:
+
+- ChordPro files (`.pro`, `.chopro`) are kept as supplied.
+- Text chord sheets with a first line like `Song Title Chords by Artist`, section headings such as `[Verse 1]` / `[Chorus]`, and chord-only rows above lyrics are converted to ChordPro. Chord positions are derived from the columns in the original text.
+- Difficulty and tuning are retained as comments; tempo, key, and capo are imported as metadata when present.
+- The original text layout is not stored separately; Firestore keeps the converted canonical ChordPro source.
+
+Run the local converter tests from this directory:
+
+```powershell
+npm test
 ```
 
 Allowed visibility values:
