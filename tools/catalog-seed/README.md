@@ -71,8 +71,9 @@ can read `visibility: "private"` songs and unpublished songs.
 
 ## Import a song
 
-The importer reads a ChordPro file and derives `title`, `artist`, `key`,
-`titleSearch`, and the document ID. It writes the canonical source,
+The importer accepts ChordPro files and supported aligned plain-text chord
+sheets. It derives `title`, `artist`, `key`, `titleSearch`, and the document
+ID, then writes the canonical ChordPro source,
 timestamps, `published`, `visibility`, and `schemaVersion`.
 
 Create Morning Light as a friends-only draft:
@@ -91,7 +92,7 @@ Import another ChordPro file or an aligned plain-text chord sheet:
 
 ```powershell
 node .\\seed-song.mjs .\\samples\\my-song.pro --project songie-prod --publish --visibility friends
-node .\\seed-song.mjs `"C:\\Songs\\my-song.txt`" --project songie-prod --publish --visibility friends
+node .\\seed-song.mjs "C:\\Songs\\my-song.txt" --project songie-prod --publish --visibility friends
 ```
 
 The importer detects the format automatically:
