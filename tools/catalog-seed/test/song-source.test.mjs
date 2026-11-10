@@ -7,6 +7,8 @@ const plainTextSheet = [
   'Test Song Chords by Example Artist',
   'Difficulty: beginner',
   'Tuning: E A D G B E',
+  'Strumming pattern',
+  '76 bpm',
   'Chords',
   'G       C     G',
   '[Verse 1]',
@@ -27,6 +29,7 @@ test('converts aligned chord rows into ChordPro chord anchors', () => {
   assert.match(converted, /^\{artist: Example Artist\}$/m);
   assert.match(converted, /^\{comment: Difficulty: beginner\}$/m);
   assert.match(converted, /^\{comment: Tuning: E A D G B E\}$/m);
+  assert.match(converted, /^\{tempo: 76\}$/m);
   assert.match(converted, /^\{start_of_verse: Verse 1\}$/m);
   assert.match(converted, /^\{start_of_chorus: Chorus\}$/m);
   assert.match(converted, /^\[G\]Hello th\[C\]ere my\[G\] friend$/m);
@@ -47,7 +50,7 @@ test('auto-detection converts a plain text chord sheet', () => {
 
   assert.equal(result.format, 'aligned text chord sheet');
   assert.match(result.source, /^\{title: Test Song\}$/m);
-  assert.match(result.source, /^\[G\]Hello th\[C\]ere \[G\]my friend$/m);
+  assert.match(result.source, /^\[G\]Hello th\[C\]ere my\[G\] friend$/m);
 });
 
 test('reports a useful error for unsupported text layouts', () => {
