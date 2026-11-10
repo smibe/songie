@@ -8,7 +8,8 @@
   "scripts": {
     "seed:morning-light": "node ./seed-song.mjs ./samples/morning-light.pro --project songie-prod",
     "member": "node ./manage-member.mjs",
-    "migrate:visibility": "node ./migrate-song-visibility.mjs"
+    "migrate:visibility": "node ./migrate-song-visibility.mjs",
+    "test": "node --test"
   },
   "dependencies": {
     "firebase-admin": "^14.5.0"
