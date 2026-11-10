@@ -29,8 +29,8 @@ test('converts aligned chord rows into ChordPro chord anchors', () => {
   assert.match(converted, /^\{comment: Tuning: E A D G B E\}$/m);
   assert.match(converted, /^\{start_of_verse: Verse 1\}$/m);
   assert.match(converted, /^\{start_of_chorus: Chorus\}$/m);
-  assert.match(converted, /^\[G\]Hello th\[C\]ere \[G\]my friend$/m);
-  assert.match(converted, /^we'll be \[F\]fine tonight$/m);
+  assert.match(converted, /^\[G\]Hello th\[C\]ere my\[G\] friend$/m);
+  assert.match(converted, /^we'll be\[F\] fine tonight$/m);
   assert.match(converted, /^\[D\]Sing a\[G\]long now$/m);
 });
 
