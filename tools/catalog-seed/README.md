@@ -91,8 +91,8 @@ npm run seed:morning-light -- --publish
 Import another ChordPro file or an aligned plain-text chord sheet:
 
 ```powershell
-node .\\seed-song.mjs .\\samples\\my-song.pro --project songie-prod --publish --visibility friends
-node .\\seed-song.mjs "C:\\Songs\\my-song.txt" --project songie-prod --publish --visibility friends
+node .\seed-song.mjs .\samples\my-song.pro --project songie-prod --publish --visibility friends
+node .\seed-song.mjs "C:\Songs\my-song.txt" --project songie-prod --publish --visibility friends
 ```
 
 The importer detects the format automatically:
