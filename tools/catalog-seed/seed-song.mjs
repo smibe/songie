@@ -5,11 +5,12 @@ import { resolve } from 'node:path';
 
 import { applicationDefault, initializeApp } from 'firebase-admin/app';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
+import { normalizeSongSource } from './song-source.mjs';
 
 function usage() {
   console.error([
     'Usage:',
-    '  node seed-song.mjs <song.chopro> [--id <document-id>] [--project <project-id>] [--publish]',
+    '  node seed-song.mjs <song.pro|song.chopro|song.txt> [--id <document-id>] [--project <project-id>] [--publish]',
     '',
     'Options:',
     '  --id       Firestore document ID. Defaults to a slug generated from the title.',
@@ -118,10 +119,12 @@ function createDocumentId(title) {
 async function main() {
   const options = parseArguments(process.argv.slice(2));
   const sourcePath = resolve(process.cwd(), options.sourcePath);
-  const source = await readFile(sourcePath, 'utf8');
+  const inputSource = await readFile(sourcePath, 'utf8');
+  const normalized = normalizeSongSource(inputSource);
+  const source = normalized.source;
 
   if (Buffer.byteLength(source, 'utf8') > 900_000) {
-    throw new Error('ChordPro source exceeds the 900,000-byte Firestore rule limit.');
+    throw new Error('Converted song source exceeds the 900,000-byte Firestore rule limit.');
   }
 
   const title = readDirective(source, ['title', 't']);
@@ -182,6 +185,7 @@ async function main() {
 
   console.log('Created songs/' + documentId + ' in project ' + options.projectId + '.');
   console.log('Title: ' + title);
+  console.log('Input format: ' + normalized.format);
   console.log('Published: ' + options.published);
   console.log('Visibility: ' + options.visibility);
 }
