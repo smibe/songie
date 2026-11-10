@@ -81,7 +81,7 @@ function parseArguments(argv) {
 
   if (!options.sourcePath) {
     usage();
-    throw new Error('A ChordPro source file is required.');
+    throw new Error('A song source file is required.');
   }
 
   return options;
@@ -129,7 +129,7 @@ async function main() {
 
   const title = readDirective(source, ['title', 't']);
   if (!title) {
-    throw new Error('The ChordPro file must contain a {title: ...} directive.');
+    throw new Error('The imported source must provide a title through a ChordPro directive or text-sheet header.');
   }
 
   const artist = readDirective(source, ['artist', 'a']);
