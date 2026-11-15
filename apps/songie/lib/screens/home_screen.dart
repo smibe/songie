@@ -129,6 +129,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openSongImport() async {
+    if (_membership?.catalogAccess != SongCatalogAccess.admin) return;
+
     final imported = await Navigator.of(context).push<bool>(
       MaterialPageRoute<bool>(
         builder: (_) => SongImportScreen(
