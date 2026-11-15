@@ -43,7 +43,7 @@ class _SongImportScreenState extends State<SongImportScreen> {
     super.dispose();
   }
 
-  void _onTextChanged(String value) {
+  void _onTextChanged(String _) {
     setState(() {
       _previewSong = null;
       _importResult = null;
