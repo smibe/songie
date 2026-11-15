@@ -9,6 +9,14 @@ class SongieAuthService {
   static const _pendingEmailKey = 'songie.pendingEmailLink';
   static const _actionUrl = 'https://songie-prod.web.app';
 
+  String get _signInContinueUrl {
+    final roomCode = Uri.base.queryParameters['room'];
+    if (roomCode == null || roomCode.trim().isEmpty) return _actionUrl;
+    return Uri.parse(_actionUrl)
+        .replace(queryParameters: {'room': roomCode})
+        .toString();
+  }
+
   final FirebaseAuth _auth;
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -42,7 +50,7 @@ class SongieAuthService {
       await _auth.sendSignInLinkToEmail(
         email: normalizedEmail,
         actionCodeSettings: ActionCodeSettings(
-          url: _actionUrl,
+          url: _signInContinueUrl,
           handleCodeInApp: true,
         ),
       );
