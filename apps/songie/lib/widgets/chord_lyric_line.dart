@@ -7,12 +7,14 @@ class ChordLyricLine extends StatelessWidget {
     required this.line,
     required this.fontSize,
     required this.showChords,
+    this.isTab = false,
     super.key,
   });
 
   final SongLine line;
   final double fontSize;
   final bool showChords;
+  final bool isTab;
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +32,25 @@ class ChordLyricLine extends StatelessWidget {
         fontStyle: line.isComment ? FontStyle.italic : FontStyle.normal,
       ),
     );
+
+    if (isTab) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const ClampingScrollPhysics(),
+          child: Text(
+            line.text,
+            softWrap: false,
+            style: lyricStyle.copyWith(
+              fontFamily: 'monospace',
+              fontSize: fontSize * 0.82,
+              height: 1.2,
+            ),
+          ),
+        ),
+      );
+    }
 
     if (!showChords || line.chords.isEmpty || line.isComment) {
       return Padding(
