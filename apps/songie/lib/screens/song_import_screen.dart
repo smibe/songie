@@ -105,7 +105,7 @@ class _SongImportScreenState extends State<SongImportScreen> {
       if (!mounted) return;
       setState(() {
         _isPickingFile = false;
-        _errorMessage = 'Could not read the file: ' + error.toString();
+        _errorMessage = 'Could not read the file: $error';
       });
     }
   }
@@ -178,7 +178,7 @@ class _SongImportScreenState extends State<SongImportScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('"' + song.title + '" was imported successfully.'),
+          content: Text('"${song.title}" was imported successfully.'),
         ),
       );
       Navigator.of(context).pop(true);
@@ -202,7 +202,7 @@ class _SongImportScreenState extends State<SongImportScreen> {
         message.contains('PERMISSION_DENIED')) {
       return 'Firestore denied this import. Please check that you are signed in with an active administrator account.';
     }
-    return 'The song could not be saved: ' + message;
+    return 'The song could not be saved: $message';
   }
 
   String get _formatLabel {
