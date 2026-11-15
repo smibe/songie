@@ -18,6 +18,7 @@ void main() {
           'currentSongArtist': 'Songie Demo',
           'selectedByUid': 'owner-1',
           'selectedByName': 'Alex',
+          'selectedAt': Timestamp.fromDate(DateTime(2026, 11, 15, 11)),
         },
       );
 
@@ -29,6 +30,7 @@ void main() {
       expect(room.participantUids, ['owner-1', 'friend-1']);
       expect(room.currentSongId, 'morning-light');
       expect(room.currentSongTitle, 'Morning Light');
+      expect(room.selectedAt, DateTime(2026, 11, 15, 11));
     });
 
     test('treats unknown room status as closed', () {
