@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'auth/songie_auth_service.dart';
 import 'data/membership_repository.dart';
+import 'data/firestore_room_repository.dart';
 import 'data/song_repository.dart';
 import 'screens/home_screen.dart';
 import 'settings/songie_settings.dart';
@@ -12,6 +13,7 @@ class SongieApp extends StatelessWidget {
     required this.authService,
     required this.songRepository,
     required this.membershipRepository,
+    required this.roomRepository,
     super.key,
   });
 
@@ -19,6 +21,7 @@ class SongieApp extends StatelessWidget {
   final SongieAuthService authService;
   final SongRepository songRepository;
   final FirestoreMembershipRepository membershipRepository;
+  final FirestoreRoomRepository roomRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +54,7 @@ class SongieApp extends StatelessWidget {
         authService: authService,
         songRepository: songRepository,
         membershipRepository: membershipRepository,
+        roomRepository: roomRepository,
       ),
     );
   }
