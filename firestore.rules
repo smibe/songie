@@ -86,7 +86,7 @@ service cloud.firestore {
     }
 
     function isRoomParticipant(roomId) {
-      return request.auth != null
+      return isApprovedSongieMember()
         && exists(roomPath(roomId))
         && get(roomPath(roomId)).data.participantUids
           .hasAny([request.auth.uid]);
@@ -290,6 +290,7 @@ service cloud.firestore {
         allow update: if isApprovedSongieMember()
           && request.auth.uid == participantUid
           && isRoomParticipant(roomId)
+          && get(roomPath(roomId)).data.status == 'active'
           && request.resource.data.diff(resource.data).affectedKeys()
             .hasOnly(['openedSongId', 'lastOpenedSongAt'])
           && request.resource.data.openedSongId
