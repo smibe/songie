@@ -58,6 +58,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         email: widget.email,
         displayName: name,
       );
+      if (!mounted) return;
+      setState(() => _busy = false);
     } catch (error) {
       if (!mounted) return;
       setState(() {
