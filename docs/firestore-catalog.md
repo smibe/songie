@@ -75,7 +75,9 @@ or device, the user must enter the same email address again.
 
 ## Bootstrap the first administrator
 
-1. Deploy the Firestore rules and updated web app.
+1. Deploy the Firestore rules first with
+   `firebase deploy --only firestore:rules --project songie-prod`, then deploy
+   the updated web app with `.deploy-web.ps1`.
 2. Open `https://songie-prod.web.app`, sign in using the email address that
    should own the catalog, and complete the required name step.
 3. From `tools/catalog-seed`, grant that account the admin role. This one-time
