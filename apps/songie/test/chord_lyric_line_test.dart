@@ -81,6 +81,7 @@ void main() {
         .toList();
 
     expect(lyricRows.length, greaterThan(1));
+    expect(lyricRows.map((widget) => widget.data).join(), lyricText);
     expect(find.text('C'), findsOneWidget);
     expect(find.text('G'), findsOneWidget);
 
