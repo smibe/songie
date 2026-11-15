@@ -70,6 +70,236 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    function isApprovedSongieMember() {
+      return request.auth != null
+        && exists(memberPath(request.auth.uid))
+        && get(memberPath(request.auth.uid)).data.active == true
+        && get(memberPath(request.auth.uid)).data.role in ['friend', 'admin'];
+    }
+
+    function roomPath(roomId) {
+      return /databases/$(database)/documents/rooms/$(roomId);
+    }
+
+    function songPath(songId) {
+      return /databases/$(database)/documents/songs/$(songId);
+    }
+
+    function isRoomParticipant(roomId) {
+      return request.auth != null
+        && exists(roomPath(roomId))
+        && get(roomPath(roomId)).data.participantUids
+          .hasAny([request.auth.uid]);
+    }
+
+    function isRoomOwner(roomId) {
+      return isRoomParticipant(roomId)
+        && get(roomPath(roomId)).data.ownerUid == request.auth.uid;
+    }
+
+    function isGroupReadableSong(songId) {
+      return songId is string
+        && exists(songPath(songId))
+        && get(songPath(songId)).data.published == true
+        && get(songPath(songId)).data.visibility in ['public', 'friends'];
+    }
+
+    match /rooms/{roomId} {
+      function validRoomCreate() {
+        return request.resource.data.keys().hasAll([
+            'name',
+            'ownerUid',
+            'ownerName',
+            'status',
+            'participantUids',
+            'currentSongId',
+            'currentSongTitle',
+            'currentSongArtist',
+            'selectedByUid',
+            'selectedByName',
+            'selectedAt',
+            'closedAt',
+            'createdAt',
+            'updatedAt'
+          ])
+          && request.resource.data.keys().hasOnly([
+            'name',
+            'ownerUid',
+            'ownerName',
+            'status',
+            'participantUids',
+            'currentSongId',
+            'currentSongTitle',
+            'currentSongArtist',
+            'selectedByUid',
+            'selectedByName',
+            'selectedAt',
+            'closedAt',
+            'createdAt',
+            'updatedAt'
+          ])
+          && request.resource.data.name is string
+          && request.resource.data.name.size() >= 2
+          && request.resource.data.name.size() <= 60
+          && request.resource.data.ownerUid == request.auth.uid
+          && request.resource.data.ownerName
+            == get(memberPath(request.auth.uid)).data.displayName
+          && request.resource.data.status == 'active'
+          && request.resource.data.participantUids == [request.auth.uid]
+          && request.resource.data.currentSongId == null
+          && request.resource.data.currentSongTitle == null
+          && request.resource.data.currentSongArtist == null
+          && request.resource.data.selectedByUid == null
+          && request.resource.data.selectedByName == null
+          && request.resource.data.selectedAt == null
+          && request.resource.data.closedAt == null
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time;
+      }
+
+      function validRoomSongUpdate() {
+        let song = get(songPath(request.resource.data.currentSongId)).data;
+        return isRoomOwner(roomId)
+          && resource.data.status == 'active'
+          && request.resource.data.status == 'active'
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly([
+              'currentSongId',
+              'currentSongTitle',
+              'currentSongArtist',
+              'selectedByUid',
+              'selectedByName',
+              'selectedAt',
+              'updatedAt'
+            ])
+          && isGroupReadableSong(request.resource.data.currentSongId)
+          && request.resource.data.currentSongTitle == song.title
+          && request.resource.data.currentSongArtist == song.artist
+          && request.resource.data.selectedByUid == request.auth.uid
+          && request.resource.data.selectedByName
+            == get(memberPath(request.auth.uid)).data.displayName
+          && request.resource.data.selectedAt == request.time
+          && request.resource.data.updatedAt == request.time;
+      }
+
+      function validRoomClose() {
+        return isRoomOwner(roomId)
+          && resource.data.status == 'active'
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['status', 'closedAt', 'updatedAt'])
+          && request.resource.data.status == 'closed'
+          && request.resource.data.closedAt == request.time
+          && request.resource.data.updatedAt == request.time;
+      }
+
+      function validRoomJoin() {
+        return isApprovedSongieMember()
+          && resource.data.status == 'active'
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['participantUids', 'updatedAt'])
+          && request.resource.data.participantUids is list
+          && request.resource.data.participantUids.size()
+            == resource.data.participantUids.size() + 1
+          && request.resource.data.participantUids
+            .hasAll(resource.data.participantUids)
+          && !resource.data.participantUids.hasAny([request.auth.uid])
+          && request.resource.data.participantUids.hasAny([request.auth.uid])
+          && request.resource.data.participantUids.size() <= 30
+          && request.resource.data.updatedAt == request.time;
+      }
+
+      function validRoomLeave() {
+        return isApprovedSongieMember()
+          && resource.data.status == 'active'
+          && resource.data.ownerUid != request.auth.uid
+          && resource.data.participantUids.hasAny([request.auth.uid])
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['participantUids', 'updatedAt'])
+          && request.resource.data.participantUids is list
+          && request.resource.data.participantUids.size()
+            == resource.data.participantUids.size() - 1
+          && resource.data.participantUids
+            .hasAll(request.resource.data.participantUids)
+          && !request.resource.data.participantUids.hasAny([request.auth.uid])
+          && request.resource.data.updatedAt == request.time;
+      }
+
+      // A signed-in, approved member can resolve a known invitation code.
+      // Room lists are restricted to rooms whose participant array contains
+      // the current user.
+      allow get: if isApprovedSongieMember()
+        && (resource.data.status == 'active' || isRoomParticipant(roomId));
+      allow list: if isApprovedSongieMember() && isRoomParticipant(roomId);
+
+      allow create: if isApprovedSongieMember() && validRoomCreate();
+      allow update: if validRoomSongUpdate()
+        || validRoomClose()
+        || validRoomJoin()
+        || validRoomLeave();
+      allow delete: if false;
+
+      match /participants/{participantUid} {
+        function roomContainsParticipant(uid) {
+          return getAfter(roomPath(roomId)).data.participantUids
+            .hasAny([uid]);
+        }
+
+        allow get, list: if isApprovedSongieMember()
+          && isRoomParticipant(roomId);
+
+        allow create: if isApprovedSongieMember()
+          && request.auth.uid == participantUid
+          && roomContainsParticipant(participantUid)
+          && request.resource.data.keys().hasAll([
+            'uid',
+            'displayName',
+            'email',
+            'role',
+            'openedSongId',
+            'lastOpenedSongAt',
+            'joinedAt'
+          ])
+          && request.resource.data.keys().hasOnly([
+            'uid',
+            'displayName',
+            'email',
+            'role',
+            'openedSongId',
+            'lastOpenedSongAt',
+            'joinedAt'
+          ])
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.displayName
+            == get(memberPath(request.auth.uid)).data.displayName
+          && request.resource.data.email
+            == get(memberPath(request.auth.uid)).data.email
+          && request.resource.data.role
+            == (
+              get(roomPath(roomId)).data.ownerUid == request.auth.uid
+                ? 'owner'
+                : 'member'
+            )
+          && request.resource.data.openedSongId == null
+          && request.resource.data.lastOpenedSongAt == null
+          && request.resource.data.joinedAt == request.time;
+
+        allow update: if isApprovedSongieMember()
+          && request.auth.uid == participantUid
+          && isRoomParticipant(roomId)
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['openedSongId', 'lastOpenedSongAt'])
+          && request.resource.data.openedSongId
+            == get(roomPath(roomId)).data.currentSongId
+          && isGroupReadableSong(request.resource.data.openedSongId)
+          && request.resource.data.lastOpenedSongAt == request.time;
+
+        allow delete: if isApprovedSongieMember()
+          && request.auth.uid == participantUid
+          && !getAfter(roomPath(roomId)).data.participantUids
+            .hasAny([request.auth.uid]);
+      }
+    }
+
     match /members/{memberUid} {
       function validDisplayName(value) {
         return value is string
