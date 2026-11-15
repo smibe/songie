@@ -88,12 +88,27 @@ Publish it to the friend circle:
 npm run seed:morning-light -- --publish
 ```
 
-Import another ChordPro file or an aligned plain-text chord sheet:
+Import one or several ChordPro files or aligned plain-text chord sheets in one run:
 
 ```powershell
-node .\seed-song.mjs .\samples\my-song.pro --project songie-prod --publish --visibility friends
-node .\seed-song.mjs "C:\Songs\my-song.txt" --project songie-prod --publish --visibility friends
+node .\seed-song.mjs .\samples\song1.pro .\samples\song2.txt --project songie-prod --publish --visibility friends
 ```
+
+To import all supported files in a folder:
+
+```powershell
+$files = Get-ChildItem "C:\Songs" -File |
+  Where-Object { $_.Extension -in ".pro", ".chopro", ".txt" } |
+  ForEach-Object { $_.FullName }
+
+node .\seed-song.mjs $files --project songie-prod --publish --visibility friends
+```
+
+Files are imported sequentially. If one file fails (for example, because its
+song already exists or its text layout is unsupported), the importer reports
+the error and continues with the next file. The final summary shows how many
+songs were created and how many failed; the process exits with code 1 if any
+file failed. The `--id` option is only available for a single-file import.
 
 The importer detects the format automatically:
 
