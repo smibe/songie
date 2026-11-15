@@ -39,6 +39,8 @@ class _RoomScreenState extends State<RoomScreen> {
   late final Stream<List<SongieRoomParticipant>> _participantsStream;
   late final Stream<List<SongieSong>> _songsStream;
   bool _busy = false;
+  bool _hasSeenInitialRoomSnapshot = false;
+  String? _lastSuggestedSongId;
 
   @override
   void initState() {
@@ -316,6 +318,38 @@ class _RoomScreenState extends State<RoomScreen> {
     );
   }
 
+  void _observeSuggestedSong(SongieRoom room) {
+    if (!_hasSeenInitialRoomSnapshot) {
+      _hasSeenInitialRoomSnapshot = true;
+      _lastSuggestedSongId = room.currentSongId;
+      return;
+    }
+
+    if (room.currentSongId == _lastSuggestedSongId) return;
+    _lastSuggestedSongId = room.currentSongId;
+
+    if (room.currentSongId == null || room.selectedByUid == widget.uid) {
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'New song suggested: ${room.currentSongTitle ?? 'Open the room to see it.'}',
+          ),
+          action: SnackBarAction(
+            label: 'Open room',
+            onPressed: () {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+          ),
+        ),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<SongieRoom?>(
@@ -335,6 +369,7 @@ class _RoomScreenState extends State<RoomScreen> {
         }
 
         final room = roomSnapshot.data;
+        if (room != null) _observeSuggestedSong(room);
         if (room == null) {
           return Scaffold(
             appBar: AppBar(title: const Text('Room')),
