@@ -264,14 +264,14 @@ class _SongImportScreenState extends State<SongImportScreen> {
                                 onPressed: _isSaving
                                     ? null
                                     : () {
-                                  _textController.clear();
-                                  setState(() {
-                                    _selectedFileName = null;
-                                    _previewSong = null;
-                                    _importResult = null;
-                                    _errorMessage = null;
-                                  });
-                                },
+                                        _textController.clear();
+                                        setState(() {
+                                          _selectedFileName = null;
+                                          _previewSong = null;
+                                          _importResult = null;
+                                          _errorMessage = null;
+                                        });
+                                      },
                                 icon: const Icon(Icons.clear),
                               ),
                       ),
