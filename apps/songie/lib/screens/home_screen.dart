@@ -15,6 +15,8 @@ import 'sign_in_screen.dart';
 import 'song_reader_content.dart';
 import 'song_screen.dart';
 import 'song_import_screen.dart';
+import 'member_management_screen.dart';
+import 'profile_setup_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -153,6 +155,28 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _openMemberManagement() {
+    if (_membership?.catalogAccess != SongCatalogAccess.admin ||
+        _user == null) {
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => MemberManagementScreen(
+          membershipRepository: widget.membershipRepository,
+          currentUid: _user!.uid,
+        ),
+      ),
+    );
+  }
+
+  bool get _needsProfileSetup =>
+      _user != null &&
+      !_membershipLoading &&
+      _membershipError == null &&
+      (_membership == null || _membership!.displayName.trim().isEmpty);
+
   void _selectSong(SongieSong song, {required bool wideLayout}) {
     if (wideLayout) {
       setState(() => _selectedSongId = song.id);
@@ -207,6 +231,11 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (_membership?.displayName.isNotEmpty == true)
+                Text(
+                  _membership!.displayName,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
               Text(_user!.email ?? 'Signed in'),
               const SizedBox(height: 4),
               Text(
@@ -229,12 +258,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget? _buildMembershipNotice() {
     if (_user == null || _membershipLoading) return null;
     if (_membership?.active == true &&
-        _membership?.role != null) {
+        _membership?.role != SongieMemberRole.none) {
       return null;
     }
 
     final message = _membershipError == null
-        ? 'Signed in as ${_user!.email ?? 'user'}, but this account has not been added to the Songie circle yet.'
+        ? 'Your account has no Songie catalog access yet. An administrator can assign the role Friend or Admin.'
         : 'Could not check Songie membership: $_membershipError';
 
     return Material(
@@ -265,6 +294,8 @@ class _HomeScreenState extends State<HomeScreen> {
               onSelected: (action) {
                 if (action == 'import') {
                   unawaited(_openSongImport());
+                } else if (action == 'members') {
+                  _openMemberManagement();
                 }
               },
               itemBuilder: (context) => const [
@@ -275,6 +306,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       Icon(Icons.library_add_outlined),
                       SizedBox(width: 12),
                       Text('Import song'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem<String>(
+                  value: 'members',
+                  child: Row(
+                    children: [
+                      Icon(Icons.manage_accounts_outlined),
+                      SizedBox(width: 12),
+                      Text('Manage users'),
                     ],
                   ),
                 ),
@@ -289,13 +330,20 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: Column(
-        children: [
-          if (_buildMembershipNotice() case final notice?) notice,
-          Expanded(
-            child: StreamBuilder<List<SongieSong>>(
-              stream: _songsStream,
-              builder: (context, snapshot) {
+      body: _needsProfileSetup
+          ? ProfileSetupScreen(
+              uid: _user!.uid,
+              email: _user!.email ?? '',
+              initialName: _membership?.displayName ?? '',
+              membershipRepository: widget.membershipRepository,
+            )
+          : Column(
+              children: [
+                if (_buildMembershipNotice() case final notice?) notice,
+                Expanded(
+                  child: StreamBuilder<List<SongieSong>>(
+                    stream: _songsStream,
+                    builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return _CatalogErrorView(
                     error: snapshot.error,
@@ -377,11 +425,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   },
                 );
-              },
+                    },
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }
