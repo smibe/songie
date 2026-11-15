@@ -58,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _pendingRoomCode = kIsWeb ? Uri.base.queryParameters['room'] : null;
+    unawaited(_loadPendingRoomCode());
     _songsStream = widget.songRepository.watchPublishedSongs(
       access: SongCatalogAccess.public,
     );
@@ -170,6 +171,15 @@ class _HomeScreenState extends State<HomeScreen> {
           _membership?.role == SongieMemberRole.admin) &&
       _membership!.displayName.trim().isNotEmpty;
 
+  Future<void> _loadPendingRoomCode() async {
+    final savedCode = await widget.authService.loadPendingRoomCode();
+    if (!mounted || savedCode == null || savedCode.trim().isEmpty) return;
+    setState(() {
+      _pendingRoomCode ??= savedCode;
+    });
+    _openPendingRoomIfReady(_membership);
+  }
+
   void _openRooms({String? initialJoinCode}) {
     if (!_canJoinRooms || _user == null) return;
     Navigator.of(context).push(
@@ -182,6 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
           displayName: _membership!.displayName,
           email: _user!.email ?? _membership!.email,
           initialJoinCode: initialJoinCode,
+          onInvitationJoined: widget.authService.clearPendingRoomCode,
         ),
       ),
     );
