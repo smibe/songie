@@ -19,7 +19,11 @@ Future<void> main() async {
   );
 
   final authService = SongieAuthService(FirebaseAuth.instance);
-  await authService.capturePendingRoomCode();
+  try {
+    await authService.capturePendingRoomCode();
+  } catch (error) {
+    debugPrint('Could not preserve room invitation: $error');
+  }
   try {
     await authService.completePendingSignIn();
   } catch (error) {
