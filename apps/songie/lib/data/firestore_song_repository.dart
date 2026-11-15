@@ -49,18 +49,26 @@ class FirestoreSongRepository implements SongRepository {
       );
     }
 
-    final now = FieldValue.serverTimestamp();
-    await _firestore.collection(collectionName).doc(documentId).create({
-      'title': title.trim(),
-      'artist': artist.trim(),
-      'key': key.trim(),
-      'chordPro': chordPro,
-      'titleSearch': normalizedTitle,
-      'published': published,
-      'visibility': visibility.firestoreValue,
-      'schemaVersion': 1,
-      'createdAt': now,
-      'updatedAt': now,
+    final document = _firestore.collection(collectionName).doc(documentId);
+    await _firestore.runTransaction((transaction) async {
+      final existing = await transaction.get(document);
+      if (existing.exists) {
+        throw StateError('A song with this title already exists.');
+      }
+
+      final now = FieldValue.serverTimestamp();
+      transaction.set(document, {
+        'title': title.trim(),
+        'artist': artist.trim(),
+        'key': key.trim(),
+        'chordPro': chordPro,
+        'titleSearch': normalizedTitle,
+        'published': published,
+        'visibility': visibility.firestoreValue,
+        'schemaVersion': 1,
+        'createdAt': now,
+        'updatedAt': now,
+      });
     });
   }
 
