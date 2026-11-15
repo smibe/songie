@@ -483,10 +483,10 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           _buildAccountAction(),
           if (_canJoinRooms)
-            TextButton.icon(
+            IconButton(
+              tooltip: 'Räume',
               onPressed: _openRooms,
               icon: const Icon(Icons.groups_outlined),
-              label: const Text('Räume'),
             ),
           if (_membership?.catalogAccess == SongCatalogAccess.admin)
             PopupMenuButton<String>(
