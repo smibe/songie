@@ -111,8 +111,10 @@ service cloud.firestore {
             .hasOnly(['email', 'displayName', 'updatedAt'])
           && request.resource.data.email == request.auth.token.email
           && validDisplayName(request.resource.data.displayName)
-          && request.resource.data.role == resource.data.role
-          && request.resource.data.active == resource.data.active
+          && request.resource.data.get('role', 'none')
+            == resource.data.get('role', 'none')
+          && request.resource.data.get('active', false)
+            == resource.data.get('active', false)
           && request.resource.data.updatedAt == request.time;
       }
 
