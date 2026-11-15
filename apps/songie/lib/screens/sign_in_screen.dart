@@ -16,10 +16,12 @@ class _SignInScreenState extends State<SignInScreen> {
   final _emailController = TextEditingController();
   bool _busy = false;
   bool _linkSent = false;
+  bool _forceRequestLink = false;
   String? _message;
   String? _error;
 
-  bool get _completingLink => widget.authService.isEmailSignInLink;
+  bool get _completingLink =>
+      !_forceRequestLink && widget.authService.isEmailSignInLink;
 
   @override
   void initState() {
@@ -76,6 +78,13 @@ class _SignInScreenState extends State<SignInScreen> {
       await widget.authService.completeSignIn(_emailController.text);
       if (mounted) Navigator.of(context).pop();
     } on FirebaseAuthException catch (error) {
+      if (error.code == 'invalid-action-code' ||
+          error.code == 'expired-action-code') {
+        setState(() {
+          _forceRequestLink = true;
+          _linkSent = false;
+        });
+      }
       _showError(_friendlyAuthError(error));
     } on FormatException catch (error) {
       _showError(error.message.toString());
@@ -149,9 +158,12 @@ class _SignInScreenState extends State<SignInScreen> {
               ),
               const SizedBox(height: 16),
               if (_error != null) ...[
-                Text(_error!, style: TextStyle(
-                  color: Theme.of(context).colorScheme.error,
-                )),
+                Text(
+                  _error!,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
                 const SizedBox(height: 12),
               ],
               if (_message != null) ...[
@@ -176,12 +188,19 @@ class _SignInScreenState extends State<SignInScreen> {
                             : 'Send sign-in link',
                       ),
               ),
+              if (_forceRequestLink && _error != null) ...[
+                const SizedBox(height: 8),
+                const Text(
+                  'The old link has been used or expired. Request a fresh link and open the newest email.',
+                ),
+              ],
               if (_linkSent && !completingLink) ...[
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: () => setState(() {
                     _linkSent = false;
                     _message = null;
+                    _error = null;
                   }),
                   child: const Text('Use another email address'),
                 ),
