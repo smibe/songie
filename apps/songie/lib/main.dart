@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 
 import 'auth/songie_auth_service.dart';
 import 'data/firestore_song_repository.dart';
+import 'data/firestore_room_repository.dart';
 import 'data/membership_repository.dart';
 import 'firebase_options.dart';
 import 'settings/songie_settings.dart';
@@ -42,6 +43,7 @@ Future<void> main() async {
   final settings = await SongieSettings.load();
   final songRepository = FirestoreSongRepository(firestore);
   final membershipRepository = FirestoreMembershipRepository(firestore);
+  final roomRepository = FirestoreRoomRepository(firestore);
 
   runApp(
     SongieApp(
@@ -49,6 +51,7 @@ Future<void> main() async {
       authService: authService,
       songRepository: songRepository,
       membershipRepository: membershipRepository,
+      roomRepository: roomRepository,
     ),
   );
 }
