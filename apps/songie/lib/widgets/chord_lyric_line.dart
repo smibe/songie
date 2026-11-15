@@ -69,20 +69,189 @@ class ChordLyricLine extends StatelessWidget {
     );
     final textDirection = Directionality.of(context);
     final textScaler = MediaQuery.textScalerOf(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxWidth = constraints.maxWidth;
+          if (!maxWidth.isFinite) {
+            // Song content normally has a bounded width. Keep a safe fallback
+            // for other callers that place this widget in an unbounded row.
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const ClampingScrollPhysics(),
+              child: _buildUnwrappedChordLine(
+                lyricStyle: lyricStyle,
+                chordStyle: chordStyle,
+                textDirection: textDirection,
+                textScaler: textScaler,
+              ),
+            );
+          }
+
+          final lyricPainter = TextPainter(
+            text: TextSpan(text: line.text, style: lyricStyle),
+            textDirection: textDirection,
+            textScaler: textScaler,
+          )..layout(maxWidth: maxWidth);
+          final lineMetrics = lyricPainter.computeLineMetrics();
+          final rows = <Widget>[];
+          var start = 0;
+          var visualLine = 0;
+
+          // TextPainter applies the same word-wrapping rules as the Text
+          // widget. Split at those visual boundaries so each wrapped row can
+          // reserve its own space for chord symbols.
+          while (start < line.text.length) {
+            if (visualLine >= lineMetrics.length) {
+              rows.add(Text(line.text.substring(start), style: lyricStyle));
+              break;
+            }
+
+            final range = lyricPainter.getLineBoundary(
+              TextPosition(
+                offset: start,
+                affinity: TextAffinity.downstream,
+              ),
+            );
+            var end = range.end;
+            if (end <= start) end = start + 1;
+            if (end > line.text.length) end = line.text.length;
+
+            final metric = lineMetrics[visualLine];
+            final lyricSegment = line.text.substring(start, end);
+            final positionedChords = <_PositionedChord>[];
+            var chordBandHeight = 0.0;
+
+            for (final chord in line.chords) {
+              final offset = chord.position.clamp(0, line.text.length).toInt();
+              final belongsToLine = offset >= start &&
+                  (offset < end ||
+                      (end == line.text.length && offset == end));
+              if (!belongsToLine) continue;
+
+              // Measure the caret in the complete lyric paragraph. This keeps
+              // kerning and shaping identical to the original source line.
+              final caretOffset = lyricPainter
+                  .getOffsetForCaret(
+                    TextPosition(
+                      offset: offset,
+                      affinity: TextAffinity.downstream,
+                    ),
+                    Rect.fromLTWH(
+                      0,
+                      0,
+                      1,
+                      lyricPainter.preferredLineHeight,
+                    ),
+                  )
+                  .dx;
+
+              final chordPainter = TextPainter(
+                text: TextSpan(text: chord.symbol, style: chordStyle),
+                textDirection: textDirection,
+                textScaler: textScaler,
+              )..layout();
+              final maximumLeft = maxWidth > chordPainter.width
+                  ? maxWidth - chordPainter.width
+                  : 0.0;
+              final left = (caretOffset - metric.left)
+                  .clamp(0.0, maximumLeft)
+                  .toDouble();
+
+              positionedChords.add(_PositionedChord(chord.symbol, left));
+              if (chordPainter.height > chordBandHeight) {
+                chordBandHeight = chordPainter.height;
+              }
+              chordPainter.dispose();
+            }
+
+            if (positionedChords.isEmpty) {
+              rows.add(
+                SizedBox(
+                  width: maxWidth,
+                  height: metric.height,
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      lyricSegment,
+                      softWrap: false,
+                      style: lyricStyle,
+                    ),
+                  ),
+                ),
+              );
+            } else {
+              const chordGap = 5.0;
+              rows.add(
+                SizedBox(
+                  width: maxWidth,
+                  height: chordBandHeight + chordGap + metric.height,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned(
+                        left: 0,
+                        top: chordBandHeight + chordGap,
+                        child: Text(
+                          lyricSegment,
+                          softWrap: false,
+                          style: lyricStyle,
+                        ),
+                      ),
+                      for (final chord in positionedChords)
+                        Positioned(
+                          left: chord.left,
+                          top: 0,
+                          child: Text(
+                            chord.symbol,
+                            softWrap: false,
+                            style: chordStyle,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            start = end;
+            visualLine++;
+          }
+
+          lyricPainter.dispose();
+
+          return SizedBox(
+            width: maxWidth,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: rows,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildUnwrappedChordLine({
+    required TextStyle lyricStyle,
+    required TextStyle chordStyle,
+    required TextDirection textDirection,
+    required TextScaler textScaler,
+  }) {
     final lyricPainter = TextPainter(
       text: TextSpan(text: line.text, style: lyricStyle),
       textDirection: textDirection,
       textScaler: textScaler,
     )..layout();
-
     final positionedChords = <_PositionedChord>[];
     var contentWidth = lyricPainter.width;
     var chordBandHeight = 0.0;
 
     for (final chord in line.chords) {
       final offset = chord.position.clamp(0, line.text.length).toInt();
-      // Measure the caret in the complete lyric run. Measuring a separate
-      // prefix can differ slightly because of kerning and text shaping.
       final chordLeft = lyricPainter
           .getOffsetForCaret(
             TextPosition(offset: offset),
@@ -95,47 +264,41 @@ class ChordLyricLine extends StatelessWidget {
         textScaler: textScaler,
       )..layout();
 
-      positionedChords.add(
-        _PositionedChord(chord.symbol, chordLeft),
-      );
+      positionedChords.add(_PositionedChord(chord.symbol, chordLeft));
       final chordRight = chordLeft + chordPainter.width;
       if (chordRight > contentWidth) contentWidth = chordRight;
       if (chordPainter.height > chordBandHeight) {
         chordBandHeight = chordPainter.height;
       }
+      chordPainter.dispose();
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const ClampingScrollPhysics(),
-        child: SizedBox(
-          width: contentWidth.ceilToDouble(),
-          height: chordBandHeight + 5 + lyricPainter.height,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned(
-                left: 0,
-                top: chordBandHeight + 5,
-                child: Text(
-                  line.text,
-                  style: lyricStyle,
-                  softWrap: false,
-                ),
-              ),
-              for (final chord in positionedChords)
-                Positioned(
-                  left: chord.left,
-                  top: 0,
-                  child: Text(chord.symbol, style: chordStyle, softWrap: false),
-                ),
-            ],
+    final result = SizedBox(
+      width: contentWidth.ceilToDouble(),
+      height: chordBandHeight + 5 + lyricPainter.height,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            left: 0,
+            top: chordBandHeight + 5,
+            child: Text(
+              line.text,
+              style: lyricStyle,
+              softWrap: false,
+            ),
           ),
-        ),
+          for (final chord in positionedChords)
+            Positioned(
+              left: chord.left,
+              top: 0,
+              child: Text(chord.symbol, style: chordStyle, softWrap: false),
+            ),
+        ],
       ),
     );
+    lyricPainter.dispose();
+    return result;
   }
 }
 
