@@ -29,7 +29,8 @@ class SongSourceImporter {
   );
   static final _sectionHeader = RegExp(r'^\s*\[([^\]]+)\]\s*$');
   static final _chordToken = RegExp(
-    r'^(?:[A-GH](?:#|b)?(?:maj|min|m|M|dim|aug|sus|add)?\d*(?:[#b]\d+)?(?:sus\d+)?(?:/[A-GH](?:#|b)?)?|N\.?C\.?),
+    r'^(?:[A-GH](?:#|b)?(?:maj|min|m|M|dim|aug|sus|add)?\d*(?:[#b]\d+)?(?:sus\d+)?(?:/[A-GH](?:#|b)?)?|N\.?C\.?)$',
+
     caseSensitive: false,
   );
   static final _tabLine = RegExp(r'^\s*[eEADGB]\s*\|');
