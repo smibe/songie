@@ -3,6 +3,7 @@
 This is the cross-platform Flutter client for Songie. The current application includes:
 
 - A searchable shared Firestore song library with public, friends-only, and private visibility.
+- Live singing rooms with invitation codes and QR links, participants, room-owner song suggestions, and per-user song activation.
 - A phone song reader and tablet two-pane library/reader layout.
 - ChordPro chord labels rendered as plain text above lyric positions.
 - Persistent chord visibility and lyric text-size settings.
@@ -59,6 +60,7 @@ To run against a connected device, select it with `flutter devices` or pass `-d 
 - Administrators see a **Manage users** screen with each registered user's name and email. They can assign `Keine`, `Freund`, or `Admin`; choosing `Keine` revokes catalog access. Users enter their own name, but only admins can change roles.
 - The trusted Admin SDK utility in `../../tools/catalog-seed` remains available to bootstrap the first administrator before the in-app role manager can be used.
 - Active administrators also see an **Import song** menu. They can paste ChordPro or supported aligned text chord sheets, select a `.pro`, `.chopro`, `.chordpro`, `.cho`, or `.txt` file, preview the parsed song, and save it with a visibility and publication setting.
+- Active friends and admins can create or join singing rooms. A room owner chooses a published public/friends song; all participants receive the live suggestion in the open room and activate it independently. Room invitation QR links can reopen Songie and prefill the join flow. Push notifications while the app is closed are not part of this first version.
 - Public catalog reads do not require a user account. Firestore Security Rules allow users to create only their own no-access profile; admins can list members and change only their role/active fields (with `updatedAt` maintained). Catalog writes remain restricted to active admins.
 - The generated `lib/firebase_options.dart` is required to build the app. It contains Firebase app identifiers, not service-account private credentials; commit it so other developers and CI can build the project.
 - Firestore rules and indexes live at the repository root. Deploy them from the repository root with `firebase deploy --only firestore:rules,firestore:indexes` after linking the Firebase project with `firebase use --add`.
