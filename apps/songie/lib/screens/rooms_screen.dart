@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../data/firestore_room_repository.dart';
@@ -152,9 +153,10 @@ class _RoomsScreenState extends State<RoomsScreen> {
       );
       try {
         await widget.onInvitationJoined?.call();
-      } catch (_) {
+      } catch (error) {
         // Joining the room succeeded. A local preference cleanup failure
         // must not prevent the user from entering it.
+        debugPrint('Could not clear saved room invitation: $error');
       }
       if (!mounted) return;
       final normalizedCode = code
