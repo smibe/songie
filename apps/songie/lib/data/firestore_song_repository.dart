@@ -4,7 +4,7 @@ import 'song.dart';
 import 'song_access.dart';
 import 'song_repository.dart';
 
-/// Firestore-backed implementation of the public shared song catalog.
+/// Firestore-backed implementation of the shared song catalog.
 class FirestoreSongRepository implements SongRepository {
   FirestoreSongRepository(this._firestore);
 
@@ -22,45 +22,31 @@ class FirestoreSongRepository implements SongRepository {
     required SongVisibility visibility,
   }) async {
     final normalizedTitle = title.trim().toLowerCase().replaceAll(
-      RegExp(r'\\s+'),
-      ' ',
-    );
-    final documentId = normalizedTitle
+          RegExp(r'\s+'),
+          ' ',
+        );
+    final slugTitle = normalizedTitle
+        .replaceAll('ä', 'ae')
+        .replaceAll('ö', 'oe')
+        .replaceAll('ü', 'ue')
+        .replaceAll('ß', 'ss');
+    final documentId = slugTitle
         .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
-        .replaceAll(RegExp(r'^-+|-+
-    required SongCatalogAccess access,
-  }) {
-    final visibleValues = switch (access) {
-      SongCatalogAccess.public => const ['public'],
-      SongCatalogAccess.friend => const ['public', 'friends'],
-      SongCatalogAccess.admin => const ['public', 'friends', 'private'],
-    };
-
-    Query<Map<String, dynamic>> query = _firestore
-        .collection(collectionName)
-        .where('visibility', whereIn: visibleValues);
-
-    if (access != SongCatalogAccess.admin) {
-      query = query.where('published', isEqualTo: true);
-    }
-
-    return query.orderBy('titleSearch')
-        .snapshots()
-        .map((snapshot) => snapshot.docs.map((document) {
-              return SongieSong.fromFirestore(
-                id: document.id,
-                data: document.data(),
-              );
-            }).toList(growable: false));
-  }
-}
-), '');
+        .replaceAll(RegExp(r'^-+|-+$'), '');
 
     if (documentId.isEmpty) {
-      throw ArgumentError.value(title, 'title', 'Song title cannot create a valid document ID.');
+      throw ArgumentError.value(
+        title,
+        'title',
+        'Song title cannot create a valid document ID.',
+      );
     }
     if (chordPro.trim().isEmpty) {
-      throw ArgumentError.value(chordPro, 'chordPro', 'Song source cannot be empty.');
+      throw ArgumentError.value(
+        chordPro,
+        'chordPro',
+        'Song source cannot be empty.',
+      );
     }
 
     final now = FieldValue.serverTimestamp();
