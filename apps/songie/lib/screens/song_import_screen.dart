@@ -43,14 +43,12 @@ class _SongImportScreenState extends State<SongImportScreen> {
     super.dispose();
   }
 
-  void _invalidatePreview() {
-    if (_previewSong == null && _importResult == null && _errorMessage == null) {
-      return;
-    }
+  void _onTextChanged(String value) {
     setState(() {
       _previewSong = null;
       _importResult = null;
       _errorMessage = null;
+      _selectedFileName = null;
     });
   }
 
@@ -233,7 +231,7 @@ class _SongImportScreenState extends State<SongImportScreen> {
                       keyboardType: TextInputType.multiline,
                       autocorrect: false,
                       enableSuggestions: false,
-                      onChanged: (_) => _invalidatePreview(),
+                      onChanged: _onTextChanged,
                       decoration: InputDecoration(
                         labelText: 'Song text',
                         hintText: '{title: My song}\n{artist: Artist}\n\n'
