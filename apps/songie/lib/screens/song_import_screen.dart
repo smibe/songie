@@ -236,6 +236,11 @@ class _SongImportScreenState extends State<SongImportScreen> {
                       'and supported chord-above-lyrics text sheets automatically.',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Only import songs that you are permitted to store and share with the selected visibility.',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _textController,
