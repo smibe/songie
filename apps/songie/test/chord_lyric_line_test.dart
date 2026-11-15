@@ -85,7 +85,7 @@ void main() {
     expect(find.text('G'), findsOneWidget);
 
     final rowStartingWithBefore = lyricRows.firstWhere(
-      (widget) => widget.data!.startsWith('before'),
+      (widget) => widget.data!.contains('before'),
     );
     final chordRect = tester.getRect(find.text('G'));
     final lyricRect = tester.getRect(find.text(rowStartingWithBefore.data!));
