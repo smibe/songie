@@ -56,7 +56,7 @@ To run against a connected device, select it with `flutter devices` or pass `-d 
 - Firebase Core and Cloud Firestore are initialized at startup. The library subscribes to published songs in the shared `songs` collection.
 - Firebase Authentication email-link sign-in is currently implemented for the web app. Android/iOS deep-link sign-in is not wired yet.
 - After the first sign-in, every user must provide a display name. Songie creates a `members/{uid}` profile with role `none` and `active: false`; signing in never grants friend or admin access automatically.
-- Administrators see a **Manage users** screen with each registered user's name and email. They can assign `Keine`, `Freund`, or `Admin`; choosing `Keine` revokes catalog access. Users can edit their own name, but only admins can change roles.
+- Administrators see a **Manage users** screen with each registered user's name and email. They can assign `Keine`, `Freund`, or `Admin`; choosing `Keine` revokes catalog access. Users enter their own name, but only admins can change roles.
 - The trusted Admin SDK utility in `../../tools/catalog-seed` remains available to bootstrap the first administrator before the in-app role manager can be used.
 - Active administrators also see an **Import song** menu. They can paste ChordPro or supported aligned text chord sheets, select a `.pro`, `.chopro`, `.chordpro`, `.cho`, or `.txt` file, preview the parsed song, and save it with a visibility and publication setting.
 - Public catalog reads do not require a user account. Firestore Security Rules allow users to create only their own no-access profile; admins can list members and change only their role/active fields. Catalog writes remain restricted to active admins.
