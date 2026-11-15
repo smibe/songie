@@ -17,7 +17,7 @@ void main() {
 
     test('converts aligned text, maps Refrain to chorus and imports capo', () {
       const source = '''
-Wunder Geschehn Chords by Nena
+Example Tune Chords by Example Artist
 Author: UnregisteredDifficulty: Beginner
 Speed: 0.2
 Transpose
@@ -33,24 +33,24 @@ G|------------|-0----------|
 [Verse 1]
 
 C              G     Am
-Auch das Schicksal
+Morning opens softly
         G                C
-und die Angst kommt über Nacht
+and the day is bright now
 
 [Refrain]
 
          C
-Wunder geschehen
+Sing together
            Am
-ich hab's gesehen
+through the night
 ''';
 
       final result = importer.importSource(source);
       final song = parser.parse(result.source);
 
       expect(result.format, SongSourceFormat.alignedText);
-      expect(song.title, 'Wunder Geschehn');
-      expect(song.artist, 'Nena');
+      expect(song.title, 'Example Tune');
+      expect(song.artist, 'Example Artist');
       expect(song.metadata['capo'], '2');
       expect(song.sections, hasLength(4));
 
@@ -63,7 +63,7 @@ ich hab's gesehen
       final verse = song.sections[2];
       expect(verse.kind, SongSectionKind.verse);
       final firstLyricLine = verse.lines.firstWhere((line) => line.text.isNotEmpty);
-      expect(firstLyricLine.text.trimRight(), 'Auch das Schicksal');
+      expect(firstLyricLine.text.trimRight(), 'Morning opens softly');
       expect(
         firstLyricLine.chords.map((chord) => chord.symbol),
         ['C', 'G', 'Am'],
