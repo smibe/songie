@@ -10,13 +10,13 @@ import '../data/song.dart';
 import '../data/song_access.dart';
 import '../data/song_repository.dart';
 import '../settings/songie_settings.dart';
-import 'settings_screen.dart';
-import 'sign_in_screen.dart';
-import 'song_reader_content.dart';
-import 'song_screen.dart';
-import 'song_import_screen.dart';
 import 'member_management_screen.dart';
 import 'profile_setup_screen.dart';
+import 'settings_screen.dart';
+import 'sign_in_screen.dart';
+import 'song_import_screen.dart';
+import 'song_reader_content.dart';
+import 'song_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -219,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen> {
         : switch (_membership?.catalogAccess) {
             SongCatalogAccess.admin => 'Administrator',
             SongCatalogAccess.friend => 'Friend',
-            _ => 'Not invited',
+            _ => 'No catalog access',
           };
 
     return PopupMenuButton<String>(
