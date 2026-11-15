@@ -40,7 +40,7 @@ class _RoomScreenState extends State<RoomScreen> {
   late final Stream<List<SongieSong>> _songsStream;
   bool _busy = false;
   bool _hasSeenInitialRoomSnapshot = false;
-  String? _lastSuggestedSongId;
+  String? _lastSuggestionKey;
 
   @override
   void initState() {
@@ -319,16 +319,20 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   void _observeSuggestedSong(SongieRoom room) {
+    final suggestionKey = room.currentSongId == null
+        ? null
+        : '${room.currentSongId}:${room.selectedAt?.microsecondsSinceEpoch ?? 0}';
+
     if (!_hasSeenInitialRoomSnapshot) {
       _hasSeenInitialRoomSnapshot = true;
-      _lastSuggestedSongId = room.currentSongId;
+      _lastSuggestionKey = suggestionKey;
       return;
     }
 
-    if (room.currentSongId == _lastSuggestedSongId) return;
-    _lastSuggestedSongId = room.currentSongId;
+    if (suggestionKey == _lastSuggestionKey) return;
+    _lastSuggestionKey = suggestionKey;
 
-    if (room.currentSongId == null || room.selectedByUid == widget.uid) {
+    if (suggestionKey == null || room.selectedByUid == widget.uid) {
       return;
     }
 
@@ -607,6 +611,7 @@ class _RoomScreenState extends State<RoomScreen> {
                               _ParticipantTile(
                                 participant: participants[index],
                                 currentSongId: room.currentSongId,
+                                selectedAt: room.selectedAt,
                                 isOwner: room.ownerUid ==
                                     participants[index].uid,
                               ),
@@ -647,16 +652,18 @@ class _ParticipantTile extends StatelessWidget {
   const _ParticipantTile({
     required this.participant,
     required this.currentSongId,
+    required this.selectedAt,
     required this.isOwner,
   });
 
   final SongieRoomParticipant participant;
   final String? currentSongId;
+  final DateTime? selectedAt;
   final bool isOwner;
 
   @override
   Widget build(BuildContext context) {
-    final opened = participant.hasOpened(currentSongId);
+    final opened = participant.hasOpened(currentSongId, selectedAt);
     final name = participant.displayName.trim().isEmpty
         ? participant.email
         : participant.displayName;
