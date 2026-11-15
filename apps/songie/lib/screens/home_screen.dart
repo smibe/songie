@@ -322,6 +322,32 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget? _buildRoomInviteNotice() {
+    if (_pendingRoomCode == null ||
+        _pendingRoomCode!.trim().isEmpty ||
+        _user != null) {
+      return null;
+    }
+
+    return Material(
+      color: const Color(0xFFF1F1F1),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: Row(
+          children: [
+            const Icon(Icons.groups_outlined),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'You have a Songie room invitation. Sign in to join the room.',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget? _buildMembershipNotice() {
     if (_user == null || _membershipLoading) return null;
     if (_membership?.active == true &&
@@ -330,7 +356,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final message = _membershipError == null
-        ? 'Your account has no Songie catalog access yet. An administrator can assign the role Friend or Admin.'
+        ? (_pendingRoomCode != null
+            ? 'You have a room invitation, but this account has no room access yet. Ask an administrator to assign Friend or Admin; the invitation will be kept.'
+            : 'Your account has no Songie catalog access yet. An administrator can assign the role Friend or Admin.')
         : 'Could not check Songie membership: $_membershipError';
 
     return Material(
@@ -412,6 +440,7 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           : Column(
               children: [
+                if (_buildRoomInviteNotice() case final notice?) notice,
                 if (_buildMembershipNotice() case final notice?) notice,
                 Expanded(
                   child: StreamBuilder<List<SongieSong>>(
