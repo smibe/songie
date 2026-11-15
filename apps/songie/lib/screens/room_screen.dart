@@ -409,9 +409,13 @@ class _RoomScreenState extends State<RoomScreen> {
                   }
 
                   final songs = songSnapshot.data!;
-                  final currentSong = songs.where(
-                    (song) => song.id == room.currentSongId,
-                  ).firstOrNull;
+                  SongieSong? currentSong;
+                  for (final song in songs) {
+                    if (song.id == room.currentSongId) {
+                      currentSong = song;
+                      break;
+                    }
+                  }
                   final openedCount = participants
                       .where((participant) =>
                           participant.hasOpened(room.currentSongId))
