@@ -233,7 +233,8 @@ service cloud.firestore {
       // Room lists are restricted to rooms whose participant array contains
       // the current user.
       allow get: if isApprovedSongieMember();
-      allow list: if isApprovedSongieMember() && isRoomParticipant(roomId);
+      allow list: if isApprovedSongieMember()
+        && resource.data.participantUids.hasAny([request.auth.uid]);
 
       allow create: if isApprovedSongieMember() && validRoomCreate();
       allow update: if validRoomSongUpdate()
