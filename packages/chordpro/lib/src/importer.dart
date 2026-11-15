@@ -57,7 +57,10 @@ class SongSourceImporter {
   }
 
   SongSourceImportResult _convertAlignedText(String source) {
-    final lines = source.split('\n');
+    final lines = source
+        .split('\n')
+        .map((line) => line.replaceAll('\t', '    '))
+        .toList(growable: false);
     final firstContentIndex =
         lines.indexWhere((line) => line.trim().isNotEmpty);
     if (firstContentIndex < 0) {
