@@ -120,7 +120,7 @@ class _SongImportScreenState extends State<SongImportScreen> {
         );
       }
       final result =
-          const SongSourceImporter().importSource(_textController.text);
+          SongSourceImporter().importSource(_textController.text);
       if (utf8.encode(result.source).length > _maximumSourceBytes) {
         throw const FormatException(
           'The converted song is larger than the 900 KB Firestore limit.',
