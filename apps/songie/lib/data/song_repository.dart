@@ -10,4 +10,15 @@ abstract interface class SongRepository {
   Stream<List<SongieSong>> watchPublishedSongs({
     required SongCatalogAccess access,
   });
+
+  /// Creates a new song in the shared catalog. Firestore rules restrict this
+  /// operation to active administrators.
+  Future<void> createSong({
+    required String title,
+    required String artist,
+    required String key,
+    required String chordPro,
+    required bool published,
+    required SongVisibility visibility,
+  });
 }
