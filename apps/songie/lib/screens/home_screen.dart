@@ -194,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
           settings: widget.settings,
           uid: _user!.uid,
           displayName: _membership!.displayName,
-          email: _user!.email ?? _membership!.email,
+          email: _membership!.email,
           initialJoinCode: initialJoinCode,
           onInvitationJoined: widget.authService.clearPendingRoomCode,
         ),
