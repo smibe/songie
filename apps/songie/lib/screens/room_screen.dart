@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -97,7 +99,7 @@ class _RoomScreenState extends State<RoomScreen> {
         actions: [
           TextButton.icon(
             onPressed: () {
-              Clipboard.setData(ClipboardData(text: room.id));
+              unawaited(Clipboard.setData(ClipboardData(text: room.id)));
               Navigator.of(context).pop();
               ScaffoldMessenger.of(this.context).showSnackBar(
                 const SnackBar(content: Text('Room code copied.')),
@@ -124,6 +126,9 @@ class _RoomScreenState extends State<RoomScreen> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) {
+          final viewport = MediaQuery.sizeOf(context);
+          final dialogWidth = viewport.width * 0.78;
+          final dialogHeight = (viewport.height * 0.55).clamp(240.0, 480.0);
           final filteredSongs = songs.where((song) {
             final searchText =
                 '${song.title} ${song.artist}'.toLowerCase();
@@ -133,8 +138,8 @@ class _RoomScreenState extends State<RoomScreen> {
           return AlertDialog(
             title: const Text('Choose a song'),
             content: SizedBox(
-              width: 440,
-              height: 480,
+              width: dialogWidth,
+              height: dialogHeight,
               child: Column(
                 children: [
                   TextField(
