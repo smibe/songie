@@ -249,6 +249,7 @@ class _SongImportScreenState extends State<SongImportScreen> {
                       keyboardType: TextInputType.multiline,
                       autocorrect: false,
                       enableSuggestions: false,
+                      readOnly: _isSaving || _isPickingFile,
                       onChanged: _onTextChanged,
                       decoration: InputDecoration(
                         labelText: 'Song text',
@@ -260,7 +261,9 @@ class _SongImportScreenState extends State<SongImportScreen> {
                             ? null
                             : IconButton(
                                 tooltip: 'Clear text',
-                                onPressed: () {
+                                onPressed: _isSaving
+                                    ? null
+                                    : () {
                                   _textController.clear();
                                   setState(() {
                                     _selectedFileName = null;
@@ -296,7 +299,9 @@ class _SongImportScreenState extends State<SongImportScreen> {
                       alignment: WrapAlignment.spaceBetween,
                       children: [
                         OutlinedButton.icon(
-                          onPressed: _isPickingFile ? null : _pickFile,
+                          onPressed: _isPickingFile || _isSaving
+                              ? null
+                              : _pickFile,
                           icon: _isPickingFile
                               ? const SizedBox(
                                   width: 16,
@@ -309,7 +314,9 @@ class _SongImportScreenState extends State<SongImportScreen> {
                           label: const Text('Select file'),
                         ),
                         FilledButton.icon(
-                          onPressed: _textController.text.trim().isEmpty
+                          onPressed: _textController.text.trim().isEmpty ||
+                                  _isSaving ||
+                                  _isPickingFile
                               ? null
                               : _createPreview,
                           icon: const Icon(Icons.preview_outlined),
