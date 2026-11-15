@@ -54,8 +54,8 @@ from the in-app **Manage users** screen.
 | `createdAt` | timestamp | Profile creation time |
 | `updatedAt` | timestamp | Last profile or role change |
 
-Users may create their own initial no-access profile and edit only their own
-name/email. They cannot grant themselves a role. Active admins can list member
+Users may create their own initial no-access profile and write only their own
+name/email fields. They cannot grant themselves a role. Active admins can list member
 profiles and change only role/active fields. An admin cannot remove their own
 admin access from the app. Firestore rules enforce these restrictions; client
 filtering is only for choosing a query compatible with those rules.
