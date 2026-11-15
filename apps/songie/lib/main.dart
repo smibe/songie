@@ -19,6 +19,7 @@ Future<void> main() async {
   );
 
   final authService = SongieAuthService(FirebaseAuth.instance);
+  await authService.capturePendingRoomCode();
   try {
     await authService.completePendingSignIn();
   } catch (error) {
