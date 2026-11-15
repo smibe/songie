@@ -128,7 +128,8 @@ class _RoomScreenState extends State<RoomScreen> {
         builder: (context, setDialogState) {
           final viewport = MediaQuery.sizeOf(context);
           final dialogWidth = viewport.width * 0.78;
-          final dialogHeight = (viewport.height * 0.55).clamp(240.0, 480.0);
+          final dialogHeight =
+              (viewport.height * 0.55).clamp(240.0, 480.0).toDouble();
           final filteredSongs = songs.where((song) {
             final searchText =
                 '${song.title} ${song.artist}'.toLowerCase();
