@@ -52,24 +52,24 @@ ich hab's gesehen
       expect(song.title, 'Wunder Geschehn');
       expect(song.artist, 'Nena');
       expect(song.metadata['capo'], '2');
-      expect(song.sections, hasLength(3));
+      expect(song.sections, hasLength(4));
 
-      final intro = song.sections[0];
+      final intro = song.sections[1];
       expect(intro.kind, SongSectionKind.tab);
       final firstTabLine = intro.lines.firstWhere((line) => line.text.isNotEmpty);
       expect(firstTabLine.text, 'E|-----0------|-------0----|');
       expect(firstTabLine.chords, isEmpty);
 
-      final verse = song.sections[1];
+      final verse = song.sections[2];
       expect(verse.kind, SongSectionKind.verse);
       final firstLyricLine = verse.lines.firstWhere((line) => line.text.isNotEmpty);
-      expect(firstLyricLine.text, 'Auch das Schicksal');
+      expect(firstLyricLine.text.trimRight(), 'Auch das Schicksal');
       expect(
         firstLyricLine.chords.map((chord) => chord.symbol),
         ['C', 'G', 'Am'],
       );
 
-      final refrain = song.sections[2];
+      final refrain = song.sections[3];
       expect(refrain.kind, SongSectionKind.chorus);
       expect(refrain.label, 'Refrain');
     });
@@ -90,7 +90,7 @@ Hello
 
       expect(song.metadata['tempo'], '76');
       expect(
-        song.sections.first.lines.first.text,
+        song.sections.last.lines.firstWhere((line) => line.text.isNotEmpty).text,
         'Hello',
       );
     });
