@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 /// A live Songie room used to coordinate a group singing session.
 class SongieRoom {
   const SongieRoom({
@@ -12,6 +14,7 @@ class SongieRoom {
     required this.currentSongArtist,
     required this.selectedByUid,
     required this.selectedByName,
+    required this.selectedAt,
   });
 
   factory SongieRoom.fromFirestore({
@@ -43,6 +46,7 @@ class SongieRoom {
       selectedByName: data['selectedByName'] is String
           ? data['selectedByName'] as String
           : null,
+      selectedAt: _asDateTime(data['selectedAt']),
     );
   }
 
@@ -57,6 +61,7 @@ class SongieRoom {
   final String? currentSongArtist;
   final String? selectedByUid;
   final String? selectedByName;
+  final DateTime? selectedAt;
 
   bool get isActive => status == 'active';
 
@@ -71,6 +76,7 @@ class SongieRoomParticipant {
     required this.email,
     required this.role,
     required this.openedSongId,
+    required this.lastOpenedSongAt,
   });
 
   factory SongieRoomParticipant.fromFirestore({
@@ -87,6 +93,7 @@ class SongieRoomParticipant {
       openedSongId: data['openedSongId'] is String
           ? data['openedSongId'] as String
           : null,
+      lastOpenedSongAt: _asDateTime(data['lastOpenedSongAt']),
     );
   }
 
@@ -95,7 +102,19 @@ class SongieRoomParticipant {
   final String email;
   final String role;
   final String? openedSongId;
+  final DateTime? lastOpenedSongAt;
 
-  bool hasOpened(String? songId) =>
-      songId != null && openedSongId == songId;
+  bool hasOpened(String? songId, DateTime? selectedAt) {
+    if (songId == null || openedSongId != songId) return false;
+    if (selectedAt == null) return lastOpenedSongAt != null;
+    final openedAt = lastOpenedSongAt;
+    return openedAt != null && !openedAt.isBefore(selectedAt);
+  }
+}
+
+
+DateTime? _asDateTime(Object? value) {
+  if (value is Timestamp) return value.toDate();
+  if (value is DateTime) return value;
+  return null;
 }
