@@ -172,12 +172,16 @@ class _HomeScreenState extends State<HomeScreen> {
       _membership!.displayName.trim().isNotEmpty;
 
   Future<void> _loadPendingRoomCode() async {
-    final savedCode = await widget.authService.loadPendingRoomCode();
-    if (!mounted || savedCode == null || savedCode.trim().isEmpty) return;
-    setState(() {
-      _pendingRoomCode ??= savedCode;
-    });
-    _openPendingRoomIfReady(_membership);
+    try {
+      final savedCode = await widget.authService.loadPendingRoomCode();
+      if (!mounted || savedCode == null || savedCode.trim().isEmpty) return;
+      setState(() {
+        _pendingRoomCode ??= savedCode;
+      });
+      _openPendingRoomIfReady(_membership);
+    } catch (error) {
+      debugPrint('Could not load saved room invitation: $error');
+    }
   }
 
   void _openRooms({String? initialJoinCode}) {
