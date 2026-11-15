@@ -232,8 +232,7 @@ service cloud.firestore {
       // A signed-in, approved member can resolve a known invitation code.
       // Room lists are restricted to rooms whose participant array contains
       // the current user.
-      allow get: if isApprovedSongieMember()
-        && (resource.data.status == 'active' || isRoomParticipant(roomId));
+      allow get: if isApprovedSongieMember();
       allow list: if isApprovedSongieMember() && isRoomParticipant(roomId);
 
       allow create: if isApprovedSongieMember() && validRoomCreate();
