@@ -98,8 +98,9 @@ class _RoomScreenState extends State<RoomScreen> {
         ),
         actions: [
           TextButton.icon(
-            onPressed: () {
-              unawaited(Clipboard.setData(ClipboardData(text: room.id)));
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: room.id));
+              if (!mounted) return;
               Navigator.of(context).pop();
               ScaffoldMessenger.of(this.context).showSnackBar(
                 const SnackBar(content: Text('Room code copied.')),
@@ -107,6 +108,18 @@ class _RoomScreenState extends State<RoomScreen> {
             },
             icon: const Icon(Icons.copy),
             label: const Text('Copy code'),
+          ),
+          TextButton.icon(
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: _invitationUrl));
+              if (!mounted) return;
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(this.context).showSnackBar(
+                const SnackBar(content: Text('Invitation link copied.')),
+              );
+            },
+            icon: const Icon(Icons.link),
+            label: const Text('Copy link'),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
