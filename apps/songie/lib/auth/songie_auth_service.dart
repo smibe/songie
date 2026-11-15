@@ -7,6 +7,7 @@ class SongieAuthService {
   SongieAuthService(this._auth);
 
   static const _pendingEmailKey = 'songie.pendingEmailLink';
+  static const _pendingRoomKey = 'songie.pendingRoomCode';
   static const _actionUrl = 'https://songie-prod.web.app';
 
   String get _signInContinueUrl {
@@ -29,6 +30,33 @@ class SongieAuthService {
   Future<String?> loadPendingEmail() async {
     final preferences = await SharedPreferences.getInstance();
     return preferences.getString(_pendingEmailKey);
+  }
+
+  /// Preserves a room invitation across email-link authentication redirects.
+  Future<void> capturePendingRoomCode() async {
+    final currentUri = Uri.base;
+    var roomCode = currentUri.queryParameters['room'];
+
+    if (roomCode == null || roomCode.trim().isEmpty) {
+      final continueUrl = currentUri.queryParameters['continueUrl'];
+      if (continueUrl != null) {
+        roomCode = Uri.tryParse(continueUrl)?.queryParameters['room'];
+      }
+    }
+
+    if (roomCode == null || roomCode.trim().isEmpty) return;
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString(_pendingRoomKey, roomCode.trim());
+  }
+
+  Future<String?> loadPendingRoomCode() async {
+    final preferences = await SharedPreferences.getInstance();
+    return preferences.getString(_pendingRoomKey);
+  }
+
+  Future<void> clearPendingRoomCode() async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.remove(_pendingRoomKey);
   }
 
   Future<void> sendSignInLink(String email) async {
