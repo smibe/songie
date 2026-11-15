@@ -6,12 +6,14 @@ import 'package:flutter/material.dart';
 
 import '../auth/songie_auth_service.dart';
 import '../data/membership_repository.dart';
+import '../data/firestore_room_repository.dart';
 import '../data/song.dart';
 import '../data/song_access.dart';
 import '../data/song_repository.dart';
 import '../settings/songie_settings.dart';
 import 'member_management_screen.dart';
 import 'profile_setup_screen.dart';
+import 'rooms_screen.dart';
 import 'settings_screen.dart';
 import 'sign_in_screen.dart';
 import 'song_import_screen.dart';
@@ -24,6 +26,7 @@ class HomeScreen extends StatefulWidget {
     required this.authService,
     required this.songRepository,
     required this.membershipRepository,
+    required this.roomRepository,
     super.key,
   });
 
@@ -31,6 +34,7 @@ class HomeScreen extends StatefulWidget {
   final SongieAuthService authService;
   final SongRepository songRepository;
   final FirestoreMembershipRepository membershipRepository;
+  final FirestoreRoomRepository roomRepository;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -47,10 +51,13 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _membershipError;
   SongCatalogAccess _catalogAccess = SongCatalogAccess.public;
   String? _selectedSongId;
+  String? _pendingRoomCode;
+  bool _pendingRoomNavigationStarted = false;
 
   @override
   void initState() {
     super.initState();
+    _pendingRoomCode = kIsWeb ? Uri.base.queryParameters['room'] : null;
     _songsStream = widget.songRepository.watchPublishedSongs(
       access: SongCatalogAccess.public,
     );
@@ -93,6 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
             membership?.catalogAccess ?? SongCatalogAccess.public,
           );
         });
+        _openPendingRoomIfReady(membership);
       },
       onError: (Object error) {
         if (!mounted) return;
@@ -153,6 +161,46 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (_) => SignInScreen(authService: widget.authService),
       ),
     );
+  }
+
+  bool get _canJoinRooms =>
+      _user != null &&
+      _membership?.active == true &&
+      (_membership?.role == SongieMemberRole.friend ||
+          _membership?.role == SongieMemberRole.admin) &&
+      _membership!.displayName.trim().isNotEmpty;
+
+  void _openRooms({String? initialJoinCode}) {
+    if (!_canJoinRooms || _user == null) return;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => RoomsScreen(
+          roomRepository: widget.roomRepository,
+          songRepository: widget.songRepository,
+          settings: widget.settings,
+          uid: _user!.uid,
+          displayName: _membership!.displayName,
+          email: _user!.email ?? _membership!.email,
+          initialJoinCode: initialJoinCode,
+        ),
+      ),
+    );
+  }
+
+  void _openPendingRoomIfReady(SongieMembership? membership) {
+    final code = _pendingRoomCode;
+    if (code == null ||
+        code.trim().isEmpty ||
+        _pendingRoomNavigationStarted ||
+        !_canJoinRooms) {
+      return;
+    }
+
+    _pendingRoomNavigationStarted = true;
+    _pendingRoomCode = null;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _openRooms(initialJoinCode: code);
+    });
   }
 
   void _openMemberManagement() {
@@ -288,6 +336,12 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Songie'),
         actions: [
           _buildAccountAction(),
+          if (_canJoinRooms)
+            IconButton(
+              tooltip: 'Singing rooms',
+              onPressed: _openRooms,
+              icon: const Icon(Icons.groups_outlined),
+            ),
           if (_membership?.catalogAccess == SongCatalogAccess.admin)
             PopupMenuButton<String>(
               tooltip: 'Admin tools',
