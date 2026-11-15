@@ -709,7 +709,7 @@ class _ParticipantTile extends StatelessWidget {
                   color: opened ? Colors.green : Colors.grey,
                 ),
                 const SizedBox(width: 6),
-                Text(opened ? 'Ready' : 'Waiting'),
+                Text(opened ? 'Opened' : 'Not opened'),
               ],
             ),
     );
