@@ -17,6 +17,7 @@ class RoomsScreen extends StatefulWidget {
     required this.displayName,
     required this.email,
     this.initialJoinCode,
+    this.onInvitationJoined,
     super.key,
   });
 
@@ -27,6 +28,7 @@ class RoomsScreen extends StatefulWidget {
   final String displayName;
   final String email;
   final String? initialJoinCode;
+  final Future<void> Function()? onInvitationJoined;
 
   @override
   State<RoomsScreen> createState() => _RoomsScreenState();
@@ -148,6 +150,7 @@ class _RoomsScreenState extends State<RoomsScreen> {
         displayName: widget.displayName,
         email: widget.email,
       );
+      await widget.onInvitationJoined?.call();
       if (!mounted) return;
       await _openRoom(code.trim().toUpperCase());
     } catch (error) {
