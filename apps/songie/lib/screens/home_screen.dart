@@ -264,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
               tooltip: 'Admin tools',
               onSelected: (action) {
                 if (action == 'import') {
-                  _openSongImport();
+                  unawaited(_openSongImport());
                 }
               },
               itemBuilder: (context) => const [
