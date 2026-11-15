@@ -61,14 +61,19 @@ class SongieMembership {
     required String uid,
     required Map<String, dynamic> data,
   }) {
+    final active = data['active'] == true;
     return SongieMembership(
       uid: uid,
       email: data['email'] is String ? data['email'] as String : '',
       displayName: data['displayName'] is String
           ? data['displayName'] as String
           : '',
-      role: SongieMemberRole.fromValue(data['role']),
-      active: data['active'] == true,
+      // An inactive member is effectively assigned no access, even if an
+      // older CLI record still contains role "friend" or "admin".
+      role: active
+          ? SongieMemberRole.fromValue(data['role'])
+          : SongieMemberRole.none,
+      active: active,
     );
   }
 
