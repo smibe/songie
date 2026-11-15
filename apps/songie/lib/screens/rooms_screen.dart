@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../data/firestore_room_repository.dart';
@@ -44,7 +46,7 @@ class _RoomsScreenState extends State<RoomsScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || _initialCodeHandled) return;
         _initialCodeHandled = true;
-        _joinRoom(code);
+        unawaited(_joinRoom(code));
       });
     }
   }
