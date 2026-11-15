@@ -152,7 +152,11 @@ class _RoomsScreenState extends State<RoomsScreen> {
       );
       await widget.onInvitationJoined?.call();
       if (!mounted) return;
-      await _openRoom(code.trim().toUpperCase());
+      final normalizedCode = code
+          .trim()
+          .toUpperCase()
+          .replaceAll(RegExp(r'[^A-Z0-9]'), '');
+      await _openRoom(normalizedCode);
     } catch (error) {
       _showError('Could not join room: $error');
     } finally {
