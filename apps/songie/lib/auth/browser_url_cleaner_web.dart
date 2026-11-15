@@ -1,4 +1,4 @@
-import 'dart:html' as html;
+import 'package:web/web.dart' as web;
 
 /// Removes one-time Firebase email-link parameters from the browser URL.
 ///
@@ -14,5 +14,5 @@ void clearFirebaseAuthUrl() {
     fragment: '',
   );
 
-  html.window.history.replaceState(null, '', cleanUri.toString());
+  web.window.history.replaceState(null, '', cleanUri.toString());
 }
