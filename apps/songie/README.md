@@ -55,10 +55,11 @@ To run against a connected device, select it with `flutter devices` or pass `-d 
 - Performance mode hides system UI and enables a screen wakelock with `wakelock_plus`.
 - Firebase Core and Cloud Firestore are initialized at startup. The library subscribes to published songs in the shared `songs` collection.
 - Firebase Authentication email-link sign-in is currently implemented for the web app. Android/iOS deep-link sign-in is not wired yet.
-- Song visibility has three levels: `public`, `friends`, and `private`. A sign-in alone grants no protected access; an admin must create an active membership.
-- Friend and administrator membership is managed initially with the trusted CLI in `../../tools/catalog-seed`.
-- Active administrators see an **Import song** menu. They can paste ChordPro or supported aligned text chord sheets, select a `.pro`, `.chopro`, `.chordpro`, `.cho`, or `.txt` file, preview the parsed song, and save it with a visibility and publication setting.
-- Public catalog reads do not require a user account. Firestore Security Rules restrict catalog writes to users whose server-managed `members/{uid}` document has an active `admin` role.
+- After the first sign-in, every user must provide a display name. Songie creates a `members/{uid}` profile with role `none` and `active: false`; signing in never grants friend or admin access automatically.
+- Administrators see a **Manage users** screen with each registered user's name and email. They can assign `Keine`, `Freund`, or `Admin`; choosing `Keine` revokes catalog access. Users can edit their own name, but only admins can change roles.
+- The trusted Admin SDK utility in `../../tools/catalog-seed` remains available to bootstrap the first administrator before the in-app role manager can be used.
+- Active administrators also see an **Import song** menu. They can paste ChordPro or supported aligned text chord sheets, select a `.pro`, `.chopro`, `.chordpro`, `.cho`, or `.txt` file, preview the parsed song, and save it with a visibility and publication setting.
+- Public catalog reads do not require a user account. Firestore Security Rules allow users to create only their own no-access profile; admins can list members and change only their role/active fields. Catalog writes remain restricted to active admins.
 - The generated `lib/firebase_options.dart` is required to build the app. It contains Firebase app identifiers, not service-account private credentials; commit it so other developers and CI can build the project.
 - Firestore rules and indexes live at the repository root. Deploy them from the repository root with `firebase deploy --only firestore:rules,firestore:indexes` after linking the Firebase project with `firebase use --add`.
 - The first published song can be added manually in Firebase Console using the instructions in `../../docs/firestore-catalog.md`.
