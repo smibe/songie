@@ -74,6 +74,7 @@ void main() {
         },
       );
 
+      expect(inactive.role, SongieMemberRole.none);
       expect(inactive.catalogAccess, SongCatalogAccess.public);
       expect(unknown.catalogAccess, SongCatalogAccess.public);
     });
