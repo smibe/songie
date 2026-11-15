@@ -8,6 +8,7 @@ import '../auth/songie_auth_service.dart';
 import '../data/firestore_room_repository.dart';
 import '../data/membership_repository.dart';
 import '../data/song.dart';
+import '../data/songie_room.dart';
 import '../data/song_access.dart';
 import '../data/song_repository.dart';
 import '../settings/songie_settings.dart';
@@ -44,6 +45,9 @@ class _HomeScreenState extends State<HomeScreen> {
   late Stream<List<SongieSong>> _songsStream;
   StreamSubscription<User?>? _authSubscription;
   StreamSubscription<SongieMembership?>? _membershipSubscription;
+  StreamSubscription<List<SongieRoom>>? _roomsSubscription;
+  String? _roomsSubscriptionUid;
+  final Map<String, String> _roomSuggestionKeys = {};
 
   User? _user;
   SongieMembership? _membership;
@@ -76,6 +80,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _onAuthStateChanged(User? user) {
     unawaited(_membershipSubscription?.cancel());
+    unawaited(_roomsSubscription?.cancel());
+    _roomsSubscription = null;
+    _roomsSubscriptionUid = null;
+    _roomSuggestionKeys.clear();
     if (!mounted) return;
 
     setState(() {
@@ -102,6 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         });
         _openPendingRoomIfReady(membership);
+        _updateRoomsSubscription(membership);
       },
       onError: (Object error) {
         if (!mounted) return;
@@ -110,14 +119,99 @@ class _HomeScreenState extends State<HomeScreen> {
           _membershipLoading = false;
           _setCatalogAccess(SongCatalogAccess.public);
         });
+        _updateRoomsSubscription(null);
       },
     );
+  }
+
+  void _updateRoomsSubscription(SongieMembership? membership) {
+    final user = _user;
+    final canWatch = user != null &&
+        membership?.active == true &&
+        (membership?.role == SongieMemberRole.friend ||
+            membership?.role == SongieMemberRole.admin) &&
+        membership!.displayName.trim().isNotEmpty;
+
+    if (!canWatch || user == null) {
+      unawaited(_roomsSubscription?.cancel());
+      _roomsSubscription = null;
+      _roomsSubscriptionUid = null;
+      _roomSuggestionKeys.clear();
+      return;
+    }
+
+    if (_roomsSubscriptionUid == user.uid) return;
+
+    unawaited(_roomsSubscription?.cancel());
+    _roomsSubscriptionUid = user.uid;
+    _roomSuggestionKeys.clear();
+    _roomsSubscription = widget.roomRepository
+        .watchMyRooms(user.uid)
+        .listen(
+      (rooms) => _onMyRoomsChanged(user.uid, rooms),
+      onError: (Object error) {
+        debugPrint('Could not watch room suggestions: $error');
+      },
+    );
+  }
+
+  void _onMyRoomsChanged(String uid, List<SongieRoom> rooms) {
+    if (!mounted || _roomsSubscriptionUid != uid || _user?.uid != uid) {
+      return;
+    }
+
+    final activeRoomIds = rooms.map((room) => room.id).toSet();
+    _roomSuggestionKeys.removeWhere(
+      (roomId, _) => !activeRoomIds.contains(roomId),
+    );
+
+    for (final room in rooms) {
+      final songId = room.currentSongId;
+      final suggestionKey = songId == null
+          ? ''
+          : '$songId:${room.selectedAt?.microsecondsSinceEpoch ?? 0}';
+      final previousKey = _roomSuggestionKeys[room.id];
+      _roomSuggestionKeys[room.id] = suggestionKey;
+
+      // The first snapshot establishes the baseline for rooms that the user
+      // already belongs to. Only later changes are new suggestions.
+      if (previousKey == null ||
+          previousKey == suggestionKey ||
+          suggestionKey.isEmpty ||
+          room.selectedByUid == uid) {
+        continue;
+      }
+
+      _notifyRoomSuggestion(room);
+    }
+  }
+
+  void _notifyRoomSuggestion(SongieRoom room) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final songTitle = room.currentSongTitle ?? 'a song';
+      final suggester = room.selectedByName ?? room.ownerName;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$suggester suggested $songTitle in ${room.name}.'),
+          duration: const Duration(seconds: 7),
+          action: SnackBarAction(
+            label: 'Open room',
+            onPressed: () {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+              _openRooms(initialJoinCode: room.id);
+            },
+          ),
+        ),
+      );
+    });
   }
 
   @override
   void dispose() {
     unawaited(_authSubscription?.cancel());
     unawaited(_membershipSubscription?.cancel());
+    unawaited(_roomsSubscription?.cancel());
     super.dispose();
   }
 
