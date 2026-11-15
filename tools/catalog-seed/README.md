@@ -47,21 +47,22 @@ they open it on another device/browser.
 npm run member -- --email you@example.com --role admin
 ```
 
-The account must have completed a Firebase sign-in before it can be found by
-email. This command writes `members/{uid}`; ordinary users cannot create or
-edit their own membership.
+The account must have completed a Firebase sign-in and the required profile
+name step before it can be found by email. The app creates
+`members/{uid}` with role `none`; this command upgrades it to `admin`.
+Ordinary users cannot assign or change their own role.
 
 ## Grant or revoke friend access
 
-Ask a friend to open Songie and sign in once. Then run:
+Ask the person to open Songie, sign in, and enter a profile name. They then
+appear in **Admin tools → Manage users**. Assign `friend` to grant friend
+access or `admin` for administrator access. Choose `Keine` in the app to
+remove catalog access.
+
+The CLI commands remain available for trusted maintenance:
 
 ```powershell
 npm run member -- --email friend@example.com --role friend
-```
-
-To revoke access:
-
-```powershell
 npm run member -- --email friend@example.com --revoke
 ```
 
@@ -151,13 +152,8 @@ invalid visibility value. It does not change publication status or song text.
 
 ## What a member document contains
 
-The membership utility writes documents to `members/{firebase-auth-uid}`:
-
-- `uid`
-- `email`
-- `role` (`admin` or `friend`)
-- `active`
-- `createdAt`
-- `updatedAt`
-
-Only trusted Admin SDK credentials can assign or revoke membership.
+The app creates a user's profile at `members/{firebase-auth-uid}` after first
+sign-in. It contains `email`, `displayName`, `role: "none"`, `active: false`,
+`createdAt`, and `updatedAt`. The membership utility changes the role and
+active flag. Only trusted Admin SDK credentials or an active administrator
+through the in-app role manager can assign or revoke access.
