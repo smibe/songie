@@ -11,8 +11,11 @@ void clearFirebaseAuthUrl() {
     queryParameters: roomCode == null || roomCode.trim().isEmpty
         ? <String, String>{}
         : {'room': roomCode},
-    fragment: '',
   );
 
-  web.window.history.replaceState(null, '', cleanUri.toString());
+  web.window.history.replaceState(
+    web.window.history.state,
+    '',
+    cleanUri.toString(),
+  );
 }
