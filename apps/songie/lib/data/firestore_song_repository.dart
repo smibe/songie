@@ -26,9 +26,9 @@ class FirestoreSongRepository implements SongRepository {
           ' ',
         );
     final slugTitle = normalizedTitle
-        .replaceAll('ä', 'ae')
-        .replaceAll('ö', 'oe')
-        .replaceAll('ü', 'ue')
+        .replaceAll('ä', 'a')
+        .replaceAll('ö', 'o')
+        .replaceAll('ü', 'u')
         .replaceAll('ß', 'ss');
     final documentId = slugTitle
         .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
@@ -62,7 +62,7 @@ class FirestoreSongRepository implements SongRepository {
         'artist': artist.trim(),
         'key': key.trim(),
         'chordPro': chordPro,
-        'titleSearch': normalizedTitle,
+        'titleSearch': slugTitle,
         'published': published,
         'visibility': visibility.firestoreValue,
         'schemaVersion': 1,
