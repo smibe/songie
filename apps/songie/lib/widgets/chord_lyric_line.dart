@@ -76,8 +76,6 @@ class ChordLyricLine extends StatelessWidget {
         builder: (context, constraints) {
           final maxWidth = constraints.maxWidth;
           if (!maxWidth.isFinite) {
-            // Song content normally has a bounded width. Keep a safe fallback
-            // for other callers that place this widget in an unbounded row.
             return SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               physics: const ClampingScrollPhysics(),
@@ -90,61 +88,40 @@ class ChordLyricLine extends StatelessWidget {
             );
           }
 
-          final lyricPainter = TextPainter(
-            text: TextSpan(text: line.text, style: lyricStyle),
+          final wrappedRows = _wrapTextToWidth(
+            text: line.text,
+            maxWidth: maxWidth,
+            style: lyricStyle,
             textDirection: textDirection,
             textScaler: textScaler,
-          )..layout(maxWidth: maxWidth);
-          final lineMetrics = lyricPainter.computeLineMetrics();
-          final rows = <Widget>[];
-          var start = 0;
-          var visualLine = 0;
+          );
+          final children = <Widget>[];
 
-          // TextPainter applies the same word-wrapping rules as the Text
-          // widget. Split at those visual boundaries so each wrapped row can
-          // reserve its own space for chord symbols.
-          while (start < line.text.length) {
-            if (visualLine >= lineMetrics.length) {
-              rows.add(Text(line.text.substring(start), style: lyricStyle));
-              break;
-            }
+          for (var rowIndex = 0; rowIndex < wrappedRows.length; rowIndex++) {
+            final row = wrappedRows[rowIndex];
+            final isLastRow = rowIndex == wrappedRows.length - 1;
+            final rowPainter = TextPainter(
+              text: TextSpan(text: row.text, style: lyricStyle),
+              textDirection: textDirection,
+              textScaler: textScaler,
+            )..layout();
 
-            final range = lyricPainter.getLineBoundary(
-              TextPosition(
-                offset: start,
-                affinity: TextAffinity.downstream,
-              ),
-            );
-            var end = range.end;
-            if (end <= start) end = start + 1;
-            if (end > line.text.length) end = line.text.length;
-
-            final metric = lineMetrics[visualLine];
-            final lyricSegment = line.text.substring(start, end);
             final positionedChords = <_PositionedChord>[];
             var chordBandHeight = 0.0;
 
             for (final chord in line.chords) {
               final offset = chord.position.clamp(0, line.text.length).toInt();
-              final belongsToLine = offset >= start &&
-                  (offset < end ||
-                      (end == line.text.length && offset == end));
-              if (!belongsToLine) continue;
+              final belongsToRow = offset >= row.start &&
+                  (offset < row.end || (isLastRow && offset == row.end));
+              if (!belongsToRow) continue;
 
-              // Measure the caret in the complete lyric paragraph. This keeps
-              // kerning and shaping identical to the original source line.
-              final caretOffset = lyricPainter
+              final localOffset = (offset - row.start)
+                  .clamp(0, row.text.length)
+                  .toInt();
+              final chordLeft = rowPainter
                   .getOffsetForCaret(
-                    TextPosition(
-                      offset: offset,
-                      affinity: TextAffinity.downstream,
-                    ),
-                    Rect.fromLTWH(
-                      0,
-                      0,
-                      1,
-                      lyricPainter.preferredLineHeight,
-                    ),
+                    TextPosition(offset: localOffset),
+                    Rect.fromLTWH(0, 0, 1, rowPainter.height),
                   )
                   .dx;
 
@@ -153,29 +130,34 @@ class ChordLyricLine extends StatelessWidget {
                 textDirection: textDirection,
                 textScaler: textScaler,
               )..layout();
+
               final maximumLeft = maxWidth > chordPainter.width
                   ? maxWidth - chordPainter.width
                   : 0.0;
-              final left = (caretOffset - metric.left)
-                  .clamp(0.0, maximumLeft)
-                  .toDouble();
-
-              positionedChords.add(_PositionedChord(chord.symbol, left));
+              positionedChords.add(
+                _PositionedChord(
+                  chord.symbol,
+                  chordLeft.clamp(0.0, maximumLeft).toDouble(),
+                ),
+              );
               if (chordPainter.height > chordBandHeight) {
                 chordBandHeight = chordPainter.height;
               }
               chordPainter.dispose();
             }
 
+            final rowHeight = rowPainter.height;
+            rowPainter.dispose();
+
             if (positionedChords.isEmpty) {
-              rows.add(
+              children.add(
                 SizedBox(
                   width: maxWidth,
-                  height: metric.height,
+                  height: row.text.isEmpty ? fontSize * 1.35 : rowHeight,
                   child: Align(
                     alignment: Alignment.topLeft,
                     child: Text(
-                      lyricSegment,
+                      row.text,
                       softWrap: false,
                       style: lyricStyle,
                     ),
@@ -184,10 +166,10 @@ class ChordLyricLine extends StatelessWidget {
               );
             } else {
               const chordGap = 5.0;
-              rows.add(
+              children.add(
                 SizedBox(
                   width: maxWidth,
-                  height: chordBandHeight + chordGap + metric.height,
+                  height: chordBandHeight + chordGap + rowHeight,
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
@@ -195,7 +177,7 @@ class ChordLyricLine extends StatelessWidget {
                         left: 0,
                         top: chordBandHeight + chordGap,
                         child: Text(
-                          lyricSegment,
+                          row.text,
                           softWrap: false,
                           style: lyricStyle,
                         ),
@@ -215,24 +197,158 @@ class ChordLyricLine extends StatelessWidget {
                 ),
               );
             }
-
-            start = end;
-            visualLine++;
           }
-
-          lyricPainter.dispose();
 
           return SizedBox(
             width: maxWidth,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
-              children: rows,
+              children: children,
             ),
           );
         },
       ),
     );
+  }
+
+  /// Wraps at whitespace without relying on TextPainter.getLineBoundary().
+  ///
+  /// That method currently returns incorrect ranges for wrapped text in some
+  /// Flutter web builds. Measuring each candidate row ourselves keeps the
+  /// chord offsets deterministic across web and native renderers.
+  List<_LyricRow> _wrapTextToWidth({
+    required String text,
+    required double maxWidth,
+    required TextStyle style,
+    required TextDirection textDirection,
+    required TextScaler textScaler,
+  }) {
+    double measure(String value) {
+      final painter = TextPainter(
+        text: TextSpan(text: value, style: style),
+        textDirection: textDirection,
+        textScaler: textScaler,
+      )..layout();
+      final width = painter.width;
+      painter.dispose();
+      return width;
+    }
+
+    final rows = <_LyricRow>[];
+    var paragraphStart = 0;
+
+    while (paragraphStart <= text.length) {
+      final newline = text.indexOf('\n', paragraphStart);
+      final paragraphEnd = newline < 0 ? text.length : newline;
+      final paragraph = text.substring(paragraphStart, paragraphEnd);
+
+      if (paragraph.isEmpty) {
+        rows.add(_LyricRow(paragraphStart, paragraphEnd, ''));
+      } else {
+        var current = '';
+        var currentStart = paragraphStart;
+        var currentEnd = paragraphStart;
+
+        void flushCurrent() {
+          if (current.isEmpty) return;
+          rows.add(_LyricRow(currentStart, currentEnd, current));
+          current = '';
+        }
+
+        void appendLongToken(String token, int tokenStart) {
+          var fragmentStart = 0;
+          var offset = 0;
+
+          while (offset < token.length) {
+            final nextOffset = _nextCodePointOffset(token, offset);
+            final candidate = token.substring(fragmentStart, nextOffset);
+
+            if (offset > fragmentStart && measure(candidate) > maxWidth) {
+              final fragment = token.substring(fragmentStart, offset);
+              rows.add(
+                _LyricRow(
+                  tokenStart + fragmentStart,
+                  tokenStart + offset,
+                  fragment,
+                ),
+              );
+              fragmentStart = offset;
+            } else {
+              offset = nextOffset;
+            }
+          }
+
+          if (fragmentStart < token.length) {
+            rows.add(
+              _LyricRow(
+                tokenStart + fragmentStart,
+                tokenStart + token.length,
+                token.substring(fragmentStart),
+              ),
+            );
+          }
+        }
+
+        void appendToken(String token, int tokenStart, int tokenEnd) {
+          if (token.isEmpty) return;
+
+          final candidate = current + token;
+          if (current.isNotEmpty && measure(candidate) > maxWidth) {
+            flushCurrent();
+          }
+
+          if (measure(token) <= maxWidth) {
+            if (current.isEmpty) currentStart = tokenStart;
+            current += token;
+            currentEnd = tokenEnd;
+          } else {
+            flushCurrent();
+            appendLongToken(token, tokenStart);
+            currentStart = tokenEnd;
+            currentEnd = tokenEnd;
+          }
+        }
+
+        var cursor = 0;
+        for (final match in RegExp(r'\S+\s*').allMatches(paragraph)) {
+          final tokenStart = cursor;
+          final tokenEnd = match.end;
+          appendToken(
+            paragraph.substring(cursor, tokenEnd),
+            paragraphStart + tokenStart,
+            paragraphStart + tokenEnd,
+          );
+          cursor = tokenEnd;
+        }
+
+        if (cursor < paragraph.length) {
+          appendToken(
+            paragraph.substring(cursor),
+            paragraphStart + cursor,
+            paragraphEnd,
+          );
+        }
+
+        flushCurrent();
+      }
+
+      if (newline < 0) break;
+      paragraphStart = newline + 1;
+      if (paragraphStart == text.length) {
+        rows.add(_LyricRow(paragraphStart, paragraphStart, ''));
+        break;
+      }
+    }
+
+    return rows;
+  }
+
+  int _nextCodePointOffset(String value, int offset) {
+    final firstCodeUnit = value.codeUnitAt(offset);
+    final isHighSurrogate =
+        firstCodeUnit >= 0xD800 && firstCodeUnit <= 0xDBFF;
+    return offset + (isHighSurrogate ? 2 : 1);
   }
 
   Widget _buildUnwrappedChordLine({
@@ -300,6 +416,14 @@ class ChordLyricLine extends StatelessWidget {
     lyricPainter.dispose();
     return result;
   }
+}
+
+class _LyricRow {
+  const _LyricRow(this.start, this.end, this.text);
+
+  final int start;
+  final int end;
+  final String text;
 }
 
 class _PositionedChord {
