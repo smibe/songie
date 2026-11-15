@@ -14,6 +14,7 @@ import 'settings_screen.dart';
 import 'sign_in_screen.dart';
 import 'song_reader_content.dart';
 import 'song_screen.dart';
+import 'song_import_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -125,6 +126,21 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (_) => SettingsScreen(settings: widget.settings),
       ),
     );
+  }
+
+  Future<void> _openSongImport() async {
+    final imported = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => SongImportScreen(
+          settings: widget.settings,
+          songRepository: widget.songRepository,
+        ),
+      ),
+    );
+
+    if (imported == true && mounted) {
+      setState(_subscribeToCatalog);
+    }
   }
 
   void _openSignIn() {
@@ -241,6 +257,28 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Songie'),
         actions: [
           _buildAccountAction(),
+          if (_membership?.catalogAccess == SongCatalogAccess.admin)
+            PopupMenuButton<String>(
+              tooltip: 'Admin tools',
+              onSelected: (action) {
+                if (action == 'import') {
+                  _openSongImport();
+                }
+              },
+              itemBuilder: (context) => const [
+                PopupMenuItem<String>(
+                  value: 'import',
+                  child: Row(
+                    children: [
+                      Icon(Icons.library_add_outlined),
+                      SizedBox(width: 12),
+                      Text('Import song'),
+                    ],
+                  ),
+                ),
+              ],
+              icon: const Icon(Icons.more_vert),
+            ),
           IconButton(
             tooltip: 'Settings',
             onPressed: _openSettings,
