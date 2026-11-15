@@ -220,6 +220,7 @@ class _RoomScreenState extends State<RoomScreen> {
       );
       return;
     }
+    final selectedSong = song;
 
     setState(() => _busy = true);
     try {
@@ -232,7 +233,7 @@ class _RoomScreenState extends State<RoomScreen> {
       await Navigator.of(context).push<void>(
         MaterialPageRoute<void>(
           builder: (_) => SongScreen(
-            song: song!,
+            song: selectedSong,
             settings: widget.settings,
           ),
         ),
