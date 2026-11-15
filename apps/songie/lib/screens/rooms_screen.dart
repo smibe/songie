@@ -182,7 +182,7 @@ class _RoomsScreenState extends State<RoomsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Singing rooms')),
-      body: StreamBuilder(
+      body: StreamBuilder<List<SongieRoom>>(
         stream: _roomsStream,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
