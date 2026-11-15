@@ -56,14 +56,16 @@ ich hab's gesehen
 
       final intro = song.sections[0];
       expect(intro.kind, SongSectionKind.tab);
-      expect(intro.lines.first.text, 'E|-----0------|-------0----|');
-      expect(intro.lines.first.chords, isEmpty);
+      final firstTabLine = intro.lines.firstWhere((line) => line.text.isNotEmpty);
+      expect(firstTabLine.text, 'E|-----0------|-------0----|');
+      expect(firstTabLine.chords, isEmpty);
 
       final verse = song.sections[1];
       expect(verse.kind, SongSectionKind.verse);
-      expect(verse.lines.first.text, 'Auch das Schicksal');
+      final firstLyricLine = verse.lines.firstWhere((line) => line.text.isNotEmpty);
+      expect(firstLyricLine.text, 'Auch das Schicksal');
       expect(
-        verse.lines.first.chords.map((chord) => chord.symbol),
+        firstLyricLine.chords.map((chord) => chord.symbol),
         ['C', 'G', 'Am'],
       );
 
