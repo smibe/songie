@@ -334,17 +334,18 @@ class _RoomScreenState extends State<RoomScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      final isRoomVisible = ModalRoute.of(context)?.isCurrent ?? true;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             'New song suggested: ${room.currentSongTitle ?? 'Open the room to see it.'}',
           ),
-          action: SnackBarAction(
-            label: 'Open room',
-            onPressed: () {
-              Navigator.of(context).popUntil((route) => route.isFirst);
-            },
-          ),
+          action: isRoomVisible
+              ? null
+              : SnackBarAction(
+                  label: 'Back to room',
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
         ),
       );
     });
