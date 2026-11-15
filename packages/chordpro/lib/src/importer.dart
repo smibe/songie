@@ -20,7 +20,7 @@ class SongSourceImportResult {
 /// into ChordPro. The original ChordPro input is retained unchanged except
 /// for a leading BOM and line-ending normalization.
 class SongSourceImporter {
-  const SongSourceImporter();
+  SongSourceImporter();
 
   static final _titleDirective = RegExp(
     r'^\s*\{\s*(?:t|title)\s*:',
@@ -29,7 +29,9 @@ class SongSourceImporter {
   );
   static final _sectionHeader = RegExp(r'^\s*\[([^\]]+)\]\s*$');
   static final _chordToken = RegExp(
-    r'^(?:[A-GH](?:#|b)?(?:maj|min|m|M|dim|aug|sus|add)?\d*(?:[#b]\d+)?(?:sus\d+)?(?:/[A-GH](?:#|b)?)?|N\.?C\.?)
+    r'^[A-GH][#b]?(?:m|maj|min|sus|dim|aug)?[0-9]*(?:[#b][0-9]+)?(?:sus[0-9]+)?(?:/[A-GH][#b]?)?$|^N\.?C\.?$',
+    caseSensitive: false,
+  );
   static final _tabLine = RegExp(r'^\s*[eEADGB]\s*\|');
 
   SongSourceImportResult importSource(String input) {
