@@ -71,15 +71,19 @@ Administrators are responsible for the shared catalog. Initially, songs can be c
 
 Do not let the Flutter client grant itself admin access. Custom claims must be assigned by a trusted Admin SDK environment, and Firestore Rules must enforce the role regardless of what the UI displays.
 
-## Shared catalog vs. live group session
+## Live singing rooms
 
-The first Firebase milestone is the shared catalog only: every user sees the same published songs and can open them independently.
+The app includes live singing rooms for active friends and administrators. A room is identified by an eight-character invitation code and stores its owner, active/closed status, participant UIDs, and the current song suggestion. The room owner chooses a published song that is visible to the whole friend circle; the room stores the song ID and display metadata, not a copy of the ChordPro source.
 
-A later live-session feature is separate. A session document can reference a song ID and optionally a setlist, host, join code, and current position. Clients can listen to that session in realtime so everyone follows the host's selected song. This does not require duplicating song content in each session. Synchronized scrolling is a later optional refinement.
+Each participant has a document in `rooms/{roomCode}/participants/{uid}`. It stores their display name, email, room role, and the song they last opened. The owner can close the room; other participants can leave. Rooms are limited to 30 participants in the first version.
+
+Clients listen to the room and participant documents with Firestore snapshots. A new suggestion appears immediately in an open room. Each participant activates the suggestion on their own device, preserving their own font size, chord visibility, and reading position. QR invitations contain a web link with the room code; the app opens the join flow after the user has signed in and has friend/admin access.
+
+This first version provides in-app realtime updates while Songie is open. Push notifications while the app is closed, synchronized scrolling, setlists, owner transfer, and participant removal are later refinements.
 
 ## Firebase services
 
-- **Cloud Firestore:** published songs now; groups, setlists, and live-session state later.
+- **Cloud Firestore:** published songs, membership profiles, and live singing room / participant state.
 - **Firebase Authentication:** not required for public song reading. Add it for administrator sign-in and private/group features.
 - **Firebase Hosting:** deploy the Flutter web build.
 
@@ -98,10 +102,10 @@ The offset is a text position, not a pixel coordinate. The Flutter renderer meas
 
 ## Planned application layers
 
-1. **Presentation:** Flutter screens and widgets (library, song reader, tablet performance mode, settings, future admin and live-session screens).
+1. **Presentation:** Flutter screens and widgets (library, song reader, tablet performance mode, settings, member administration, and live rooms).
 2. **Application:** use cases such as watch published songs, search catalog, transpose, update display preferences, and later publish songs or join a live session.
 3. **Domain:** song and setlist models plus ChordPro and music utilities.
-4. **Infrastructure:** Firestore repository, local preference storage, Firebase Hosting, and later Authentication/session synchronization.
+4. **Infrastructure:** Firestore song, membership, and room repositories, local preference storage, Firebase Hosting, and email-link Authentication.
 
 ## First Firebase milestone
 
