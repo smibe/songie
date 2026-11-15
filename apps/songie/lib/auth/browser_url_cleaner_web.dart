@@ -9,7 +9,7 @@ void clearFirebaseAuthUrl() {
   final cleanUri = currentUri.replace(
     path: '/',
     queryParameters: roomCode == null || roomCode.trim().isEmpty
-        ? null
+        ? <String, String>{}
         : {'room': roomCode},
     fragment: '',
   );
