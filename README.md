@@ -45,17 +45,20 @@ Deploy Firestore rules and indexes:
 firebase deploy --only firestore:rules,firestore:indexes
 ```
 
-Build and deploy the Flutter web app:
+Build and deploy the Flutter web app on Windows PowerShell:
 
-```sh
-cd apps/songie
-flutter pub get
-flutter build web --release
-cd ../..
-firebase deploy --only hosting
+```powershell
+.\deploy-web.ps1
 ```
 
-Firebase Hosting serves the Flutter build from `apps/songie/build/web` over HTTPS. Hosting and Firestore can be deployed independently.
+The script installs package dependencies, runs the ChordPro and Flutter checks,
+builds the web release, and deploys Hosting explicitly to `songie-prod`.
+It requires Flutter and the Firebase CLI on `PATH`, plus an authenticated
+Firebase CLI session (`firebase login`). It does not deploy Firestore rules
+or indexes.
+
+Firebase Hosting serves the Flutter build from `apps/songie/build/web` over
+HTTPS. Hosting and Firestore can be deployed independently.
 
 To initialize catalog documents from ChordPro files, see [`tools/catalog-seed/README.md`](tools/catalog-seed/README.md). The seed tool uses the Firebase Admin SDK and writes only new documents.
 
