@@ -150,7 +150,12 @@ class _RoomsScreenState extends State<RoomsScreen> {
         displayName: widget.displayName,
         email: widget.email,
       );
-      await widget.onInvitationJoined?.call();
+      try {
+        await widget.onInvitationJoined?.call();
+      } catch (_) {
+        // Joining the room succeeded. A local preference cleanup failure
+        // must not prevent the user from entering it.
+      }
       if (!mounted) return;
       final normalizedCode = code
           .trim()
