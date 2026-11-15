@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:songie/data/songie_room.dart';
 
@@ -53,13 +54,22 @@ void main() {
           'email': 'sam@example.com',
           'role': 'member',
           'openedSongId': 'morning-light',
+          'lastOpenedSongAt': Timestamp.fromDate(DateTime(2026, 11, 15, 12)),
         },
       );
+      final selectedAt = DateTime(2026, 11, 15, 11);
 
       expect(participant.displayName, 'Sam');
-      expect(participant.hasOpened('morning-light'), isTrue);
-      expect(participant.hasOpened('quiet-river'), isFalse);
-      expect(participant.hasOpened(null), isFalse);
+      expect(participant.hasOpened('morning-light', selectedAt), isTrue);
+      expect(
+        participant.hasOpened(
+          'morning-light',
+          DateTime(2026, 11, 15, 13),
+        ),
+        isFalse,
+      );
+      expect(participant.hasOpened('quiet-river', selectedAt), isFalse);
+      expect(participant.hasOpened(null, selectedAt), isFalse);
     });
   });
 }
