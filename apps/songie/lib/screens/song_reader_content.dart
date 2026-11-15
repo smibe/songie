@@ -1,3 +1,4 @@
+import 'package:chordpro/chordpro.dart';
 import 'package:flutter/material.dart';
 
 import '../data/song.dart';
@@ -64,6 +65,7 @@ class SongReaderContent extends StatelessWidget {
                   line: line,
                   fontSize: fontSize,
                   showChords: settings.showChords,
+                  isTab: section.kind == SongSectionKind.tab,
                 ),
               const SizedBox(height: 12),
             ],
