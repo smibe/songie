@@ -71,14 +71,85 @@ service cloud.firestore {
     }
 
     match /members/{memberUid} {
-      // Reading one's own membership is the bootstrap path used by the app.
-      // Do not call isAdmin() here: that helper reads this same document and
-      // would make this rule recursively evaluate itself.
-      allow get: if request.auth != null && request.auth.uid == memberUid;
+      function validDisplayName(value) {
+        return value is string
+          && value.size() >= 2
+          && value.size() <= 80;
+      }
 
-      // Membership is managed only by the trusted Admin SDK utilities.
-      // Client-side users, including admins, cannot list or mutate members.
-      allow list, create, update, delete: if false;
+      function validSelfProfileCreate() {
+        return request.auth != null
+          && request.auth.uid == memberUid
+          && request.resource.data.keys().hasAll([
+            'email',
+            'displayName',
+            'role',
+            'active',
+            'createdAt',
+            'updatedAt'
+          ])
+          && request.resource.data.keys().hasOnly([
+            'email',
+            'displayName',
+            'role',
+            'active',
+            'createdAt',
+            'updatedAt'
+          ])
+          && request.resource.data.email == request.auth.token.email
+          && validDisplayName(request.resource.data.displayName)
+          && request.resource.data.role == 'none'
+          && request.resource.data.active == false
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time;
+      }
+
+      function validSelfProfileUpdate() {
+        return request.auth != null
+          && request.auth.uid == memberUid
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['email', 'displayName', 'updatedAt'])
+          && request.resource.data.email == request.auth.token.email
+          && validDisplayName(request.resource.data.displayName)
+          && request.resource.data.role == resource.data.role
+          && request.resource.data.active == resource.data.active
+          && request.resource.data.updatedAt == request.time;
+      }
+
+      function validAdminRoleUpdate() {
+        return isAdmin()
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['role', 'active', 'updatedAt'])
+          && request.resource.data.role in ['none', 'friend', 'admin']
+          && request.resource.data.active is bool
+          && request.resource.data.active
+            == (request.resource.data.role in ['friend', 'admin'])
+          && request.resource.data.updatedAt == request.time
+          // Never allow an administrator to remove their own admin access.
+          // They can change another administrator's role while retaining
+          // their own access, so at least one administrator remains.
+          && (
+            memberUid != request.auth.uid
+            || (
+              request.resource.data.role == 'admin'
+              && request.resource.data.active == true
+            )
+          );
+      }
+
+      // Users can read their own membership; administrators can inspect the
+      // member list and individual profiles.
+      allow get: if (
+        request.auth != null && request.auth.uid == memberUid
+      ) || isAdmin();
+      allow list: if isAdmin();
+
+      // New users may create only a no-access profile for themselves. Existing
+      // users may edit only their own name and email. Administrators may change
+      // role/active fields, but cannot edit another user's profile details.
+      allow create: if validSelfProfileCreate();
+      allow update: if validSelfProfileUpdate() || validAdminRoleUpdate();
+      allow delete: if false;
     }
   }
 }
