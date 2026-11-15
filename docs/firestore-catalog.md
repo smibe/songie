@@ -38,23 +38,27 @@ made public implicitly.
 
 ## Authentication and membership
 
-Songie uses Firebase Authentication email-link sign-in. Anyone can request a
-sign-in link, but signing in does not grant friend or administrator access.
-Membership is stored in `members/{firebase-auth-uid}`:
+Songie uses Firebase Authentication email-link sign-in. Anyone can request a sign-in link, but signing in does not grant friend or
+administrator access. After first sign-in, the app requires a display name and
+creates `members/{firebase-auth-uid}` with role `none` and `active: false`.
+The user's name and email are visible to administrators, who can assign a role
+from the in-app **Manage users** screen.
 
 | Field | Type | Description |
 |---|---|---|
-| `uid` | string | Firebase Authentication user ID |
+| document ID | string | Firebase Authentication user ID |
 | `email` | string | Verified account email |
-| `role` | string | `friend` or `admin` |
-| `active` | boolean | Whether the membership is currently enabled |
-| `createdAt` | timestamp | Membership creation time |
-| `updatedAt` | timestamp | Last membership change |
+| `displayName` | string | Name entered by the user |
+| `role` | string | `none`, `friend`, or `admin` |
+| `active` | boolean | False for `none`; true for `friend` and `admin` |
+| `createdAt` | timestamp | Profile creation time |
+| `updatedAt` | timestamp | Last profile or role change |
 
-Members cannot create or update their own membership. Only trusted Admin SDK
-credentials can grant or revoke access. Firestore rules are the security
-boundary; filtering in the client is only for choosing a query compatible with
-those rules.
+Users may create their own initial no-access profile and edit only their own
+name/email. They cannot grant themselves a role. Active admins can list member
+profiles and change only role/active fields. An admin cannot remove their own
+admin access from the app. Firestore rules enforce these restrictions; client
+filtering is only for choosing a query compatible with those rules.
 
 ## Enable passwordless sign-in
 
@@ -71,11 +75,11 @@ or device, the user must enter the same email address again.
 
 ## Bootstrap the first administrator
 
-1. Deploy the updated web app and Firestore rules after running the migration
-   described below.
-2. Open `https://songie-prod.web.app` and sign in once using the email address
-   that should own the catalog.
-3. From `tools/catalog-seed`, grant that account the admin role:
+1. Deploy the Firestore rules and updated web app.
+2. Open `https://songie-prod.web.app`, sign in using the email address that
+   should own the catalog, and complete the required name step.
+3. From `tools/catalog-seed`, grant that account the admin role. This one-time
+   trusted CLI step is necessary because no in-app administrator exists yet:
 
 ```powershell
 npm install
@@ -88,21 +92,20 @@ be found by email.
 
 ## Grant or revoke friend access
 
-Ask a friend to open Songie and sign in once. Then run:
+Ask the person to open Songie, sign in, and enter a name. The account then
+appears in **Admin tools → Manage users** with role `Keine`. Select `Freund`
+to grant access or `Admin` to grant administrator privileges. Select `Keine`
+to revoke catalog access. The membership listener updates the app immediately.
+
+The CLI remains available for bootstrap and trusted maintenance:
 
 ```powershell
 npm run member -- --email friend@example.com --role friend
-```
-
-To revoke access:
-
-```powershell
 npm run member -- --email friend@example.com --revoke
 ```
 
-The membership listener updates the app when access changes. Friends can read
-published `public` and `friends` songs. Only admins can read `private`
-songs. An uninvited account can still read `public` songs only.
+Friends can read published `public` and `friends` songs. Only admins can read
+`private` songs. A user with role `none` can still read `public` songs only.
 
 ## Import songs
 
