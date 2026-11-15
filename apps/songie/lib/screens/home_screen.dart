@@ -344,87 +344,96 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: StreamBuilder<List<SongieSong>>(
                     stream: _songsStream,
                     builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return _CatalogErrorView(
-                    error: snapshot.error,
-                    onRetry: _retryCatalog,
-                  );
-                }
-
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final songs = snapshot.data!;
-                return LayoutBuilder(
-                  builder: (context, constraints) {
-                    final wideLayout = constraints.maxWidth >= 900;
-                    if (!wideLayout) {
-                      return SongLibraryPane(
-                        songs: songs,
-                        onSelected: (song) =>
-                            _selectSong(song, wideLayout: false),
-                      );
-                    }
-
-                    SongieSong? selectedSong;
-                    for (final song in songs) {
-                      if (song.id == _selectedSongId) {
-                        selectedSong = song;
-                        break;
+                      if (snapshot.hasError) {
+                        return _CatalogErrorView(
+                          error: snapshot.error,
+                          onRetry: _retryCatalog,
+                        );
                       }
-                    }
-                    selectedSong ??= songs.isEmpty ? null : songs.first;
-                    final songForDisplay = selectedSong;
 
-                    return Row(
-                      children: [
-                        SizedBox(
-                          width: 340,
-                          child: SongLibraryPane(
-                            songs: songs,
-                            selectedSongId: songForDisplay?.id,
-                            onSelected: (song) =>
-                                _selectSong(song, wideLayout: true),
-                          ),
-                        ),
-                        const VerticalDivider(width: 1, thickness: 1),
-                        Expanded(
-                          child: songForDisplay == null
-                              ? const Center(
-                                  child: Text('No songs available'),
-                                )
-                              : Column(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                        28, 12, 20, 12,
-                                      ),
-                                      child: Row(
+                      if (!snapshot.hasData) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+
+                      final songs = snapshot.data!;
+                      return LayoutBuilder(
+                        builder: (context, constraints) {
+                          final wideLayout = constraints.maxWidth >= 900;
+                          if (!wideLayout) {
+                            return SongLibraryPane(
+                              songs: songs,
+                              onSelected: (song) =>
+                                  _selectSong(song, wideLayout: false),
+                            );
+                          }
+
+                          SongieSong? selectedSong;
+                          for (final song in songs) {
+                            if (song.id == _selectedSongId) {
+                              selectedSong = song;
+                              break;
+                            }
+                          }
+                          selectedSong ??= songs.isEmpty ? null : songs.first;
+                          final songForDisplay = selectedSong;
+
+                          return Row(
+                            children: [
+                              SizedBox(
+                                width: 340,
+                                child: SongLibraryPane(
+                                  songs: songs,
+                                  selectedSongId: songForDisplay?.id,
+                                  onSelected: (song) =>
+                                      _selectSong(song, wideLayout: true),
+                                ),
+                              ),
+                              const VerticalDivider(width: 1, thickness: 1),
+                              Expanded(
+                                child: songForDisplay == null
+                                    ? const Center(
+                                        child: Text('No songs available'),
+                                      )
+                                    : Column(
                                         children: [
-                                          const Spacer(),
-                                          TextButton(
-                                            onPressed: () =>
-                                                _openPerformanceMode(songForDisplay),
-                                            child: const Text('Full screen'),
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                              28,
+                                              12,
+                                              20,
+                                              12,
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                const Spacer(),
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      _openPerformanceMode(
+                                                        songForDisplay,
+                                                      ),
+                                                  child: const Text(
+                                                    'Full screen',
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const Divider(height: 1),
+                                          Expanded(
+                                            child: SongReaderContent(
+                                              song: songForDisplay,
+                                              settings: widget.settings,
+                                            ),
                                           ),
                                         ],
                                       ),
-                                    ),
-                                    const Divider(height: 1),
-                                    Expanded(
-                                      child: SongReaderContent(
-                                        song: songForDisplay,
-                                        settings: widget.settings,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                        ),
-                      ],
-                    );
-                  },
-                );
+                              ),
+                            ],
+                          );
+                        },
+                      );
                     },
                   ),
                 ),
