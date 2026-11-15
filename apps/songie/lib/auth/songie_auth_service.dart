@@ -110,9 +110,9 @@ class SongieAuthService {
       emailLink: Uri.base.toString(),
     );
 
+    clearFirebaseAuthUrl();
     final preferences = await SharedPreferences.getInstance();
     await preferences.remove(_pendingEmailKey);
-    clearFirebaseAuthUrl();
     return credential;
   }
 
