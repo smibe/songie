@@ -36,7 +36,9 @@ firebase.json
 
 1. **Library / contents:** searchable list of published songs, with simple categories or setlists later.
 2. **Song display:** readable lyrics with optional chord text positioned above the corresponding lyric positions. The reader supports scrolling and transposition.
-3. **Settings:** persistent `Show guitar chords` preference and adjustable text size.
+3. **Singing rooms:** create or join a room with an invitation code/QR link, see participants, and activate the room owner's current song suggestion.
+4. **Account and admin tools:** profile completion, administrator-managed member roles, and ChordPro import/preview.
+5. **Settings:** persistent `Show guitar chords` preference and adjustable text size.
 
 On phones, use a normal navigation stack. On wider tablets, use a two-pane browsing layout, but allow the reader to open full-screen.
 
@@ -59,17 +61,28 @@ Phone song display remains a focused single-page reader and reuses the same song
 
 Cloud Firestore is the source of truth for the published catalog. Each song is one document in the top-level `songs` collection. The canonical content field is the complete ChordPro source string; clients parse it with the pure Dart `chordpro` package.
 
-Regular users read only documents with `published == true`. Reading is public and does not require Firebase Authentication in the first version. Client writes are forbidden. Admin writes are authorized by a trusted Firebase Authentication custom claim (`admin == true`) and enforced by Firestore Security Rules.
+Song reads depend on the publication state, visibility, and the signed-in user's membership:
 
-At startup, the app subscribes to the published-song query, orders by `titleSearch`, and maps each document to a `SongieSong`. Firestore's cache supplies recently fetched documents offline. On Android and iOS, Firestore persistence is enabled by default; on web it must be enabled explicitly and should handle browsers where persistent storage is unavailable.
+- Published `public` songs can be read without signing in.
+- Active users with role `friend` or `admin` can read published `public` and `friends` songs.
+- Active administrators can also read `private` songs and unpublished drafts.
+- Only active administrators can create, update, or delete shared catalog documents.
 
-The UI depends on a `SongRepository` abstraction rather than importing Firestore directly. The current in-memory demo catalog is a temporary implementation; `FirestoreSongRepository` will become the production implementation once the Firebase project is configured.
+At startup, the app subscribes to a query compatible with the user's catalog access, orders by `titleSearch`, and maps each document to a `SongieSong`. Firestore's cache supplies recently fetched documents offline. Web persistence is enabled where the browser permits it and falls back gracefully when persistent storage is unavailable.
+
+The UI depends on a `SongRepository` abstraction rather than importing Firestore directly. `FirestoreSongRepository` is the production implementation.
+
+### Authentication and membership
+
+Firebase Authentication uses passwordless email-link sign-in in the web app. Public songs remain readable without an account; friend-circle songs, private songs, rooms, and administrator tools require an authenticated account with the appropriate membership. Android/iOS email-link deep links are not wired yet.
+
+After first sign-in, users enter a display name. The app creates `members/{uid}` with role `none` and `active: false`; signing in does not grant friend or admin access. Administrators can list member profiles and assign `none`, `friend`, or `admin` in the in-app **Manage users** screen. Users can create their own no-access profile and update their name/email, but cannot grant themselves a role.
 
 ### Admin content workflow
 
-Administrators are responsible for the shared catalog. Initially, songs can be created or edited in the Firebase Console. A dedicated admin screen can follow, with ChordPro text editing, file import, preview, and publish/unpublish actions. Import is an admin publishing tool, not a requirement for ordinary users.
+Active administrators see an in-app import tool that accepts ChordPro and supported aligned plain-text chord sheets, previews the parsed song, and creates a catalog entry with publication and visibility settings. The trusted Admin SDK CLI remains available for bootstrapping the first administrator and for catalog maintenance.
 
-Do not let the Flutter client grant itself admin access. Custom claims must be assigned by a trusted Admin SDK environment, and Firestore Rules must enforce the role regardless of what the UI displays.
+Do not let the Flutter client grant itself admin access. Firestore Security Rules enforce membership roles and all catalog permissions; client-side checks only shape the UI and select queries that satisfy those rules.
 
 ## Live singing rooms
 
@@ -84,7 +97,7 @@ This first version provides in-app realtime updates while Songie is open. Push n
 ## Firebase services
 
 - **Cloud Firestore:** published songs, membership profiles, and live singing room / participant state.
-- **Firebase Authentication:** not required for public song reading. Add it for administrator sign-in and private/group features.
+- **Firebase Authentication:** passwordless email-link sign-in for users who need friend-circle, room, or admin access; public song reading remains anonymous.
 - **Firebase Hosting:** deploy the Flutter web build.
 
 Firebase client configuration contains project identifiers, not service-account private keys. Never commit Admin SDK service-account credentials or other private secrets.
@@ -107,13 +120,12 @@ The offset is a text position, not a pixel coordinate. The Flutter renderer meas
 3. **Domain:** song and setlist models plus ChordPro and music utilities.
 4. **Infrastructure:** Firestore song, membership, and room repositories, local preference storage, Firebase Hosting, and email-link Authentication.
 
-## First Firebase milestone
+## Deployment and verification
 
-1. Create a Firebase project and register Android, iOS, and Web apps with FlutterFire CLI.
-2. Initialize Firebase and configure Cloud Firestore.
-3. Deploy the catalog security rules and indexes.
-4. Replace the demo data source with `FirestoreSongRepository`.
-5. Seed a few original or properly licensed ChordPro songs.
-6. Verify public reads, admin-only writes, realtime updates, and offline behavior on web and mobile.
+1. Configure the Firebase project and platform apps with FlutterFire CLI.
+2. Deploy Firestore rules and indexes from the repository root.
+3. Build and deploy the web app with `deploy-web.ps1`.
+4. Verify anonymous public song reads, friend/admin access, role changes, room invitation links, realtime song suggestions, and offline behavior.
+5. Use only original, public-domain, or appropriately licensed songs in the shared catalog.
 
 See [`firestore-catalog.md`](firestore-catalog.md) for the initial Firestore document schema and rules.
