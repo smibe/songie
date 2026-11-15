@@ -55,13 +55,14 @@ class _RoomScreenState extends State<RoomScreen> {
     );
   }
 
-  String get _invitationUrl => Uri(
+  String _invitationUrl(String roomCode) => Uri(
         scheme: 'https',
         host: 'songie-prod.web.app',
-        queryParameters: {'room': widget.roomCode},
+        queryParameters: {'room': roomCode},
       ).toString();
 
   Future<void> _showInvitation(SongieRoom room) async {
+    final invitationUrl = _invitationUrl(room.id);
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
@@ -70,7 +71,7 @@ class _RoomScreenState extends State<RoomScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             QrImageView(
-              data: _invitationUrl,
+              data: invitationUrl,
               version: QrVersions.auto,
               size: 220,
               backgroundColor: Colors.white,
@@ -109,7 +110,7 @@ class _RoomScreenState extends State<RoomScreen> {
           ),
           TextButton.icon(
             onPressed: () async {
-              await Clipboard.setData(ClipboardData(text: _invitationUrl));
+              await Clipboard.setData(ClipboardData(text: invitationUrl));
               if (!mounted) return;
               Navigator.of(context).pop();
               ScaffoldMessenger.of(this.context).showSnackBar(
