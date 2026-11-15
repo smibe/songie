@@ -4,8 +4,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
 
 import 'auth/songie_auth_service.dart';
-import 'data/firestore_song_repository.dart';
 import 'data/firestore_room_repository.dart';
+import 'data/firestore_song_repository.dart';
 import 'data/membership_repository.dart';
 import 'firebase_options.dart';
 import 'settings/songie_settings.dart';
