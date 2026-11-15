@@ -33,7 +33,7 @@ if (-not (Test-Path $hostingConfig)) {
     throw "Firebase configuration not found at '$hostingConfig'."
 }
 
-foreach ($commandName in @('flutter', 'dart', 'firebase')) {
+foreach ($commandName in @('flutter', 'firebase')) {
     if (-not (Get-Command $commandName -ErrorAction SilentlyContinue)) {
         throw "'$commandName' was not found on PATH. Please install it and reopen PowerShell."
     }
@@ -62,9 +62,9 @@ try {
     # Verify the shared ChordPro importer package.
     Push-Location (Join-Path $repoRoot 'packages\chordpro')
     try {
-        Invoke-CheckedCommand -Command 'dart' -Arguments @('pub', 'get')
-        Invoke-CheckedCommand -Command 'dart' -Arguments @('analyze')
-        Invoke-CheckedCommand -Command 'dart' -Arguments @('test')
+        Invoke-CheckedCommand -Command 'flutter' -Arguments @('pub', 'get')
+        Invoke-CheckedCommand -Command 'flutter' -Arguments @('analyze')
+        Invoke-CheckedCommand -Command 'flutter' -Arguments @('test')
     }
     finally {
         Pop-Location
