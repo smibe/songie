@@ -4,3 +4,5 @@ library chordpro;
 export 'src/models.dart';
 export 'src/parser.dart';
 export 'src/transposition.dart';
+
+export 'src/importer.dart';
