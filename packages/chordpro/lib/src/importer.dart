@@ -145,7 +145,7 @@ class SongSourceImporter {
     }
 
     return SongSourceImportResult(
-      source: output.join('\n').trimRight() + '\n',
+      source: '${output.join('\n').trimRight()}\n',
       format: SongSourceFormat.alignedText,
       warnings: const [],
     );
