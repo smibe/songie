@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/firestore_room_repository.dart';
 import '../data/song_repository.dart';
+import '../data/songie_room.dart';
 import '../settings/songie_settings.dart';
 import 'room_screen.dart';
 
@@ -30,7 +31,7 @@ class RoomsScreen extends StatefulWidget {
 }
 
 class _RoomsScreenState extends State<RoomsScreen> {
-  late final Stream _roomsStream;
+  late final Stream<List<SongieRoom>> _roomsStream;
   bool _busy = false;
   bool _initialCodeHandled = false;
 
