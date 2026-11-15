@@ -137,11 +137,10 @@ service cloud.firestore {
           );
       }
 
-      // Users can read their own membership; administrators can inspect the
-      // member list and individual profiles.
-      allow get: if (
-        request.auth != null && request.auth.uid == memberUid
-      ) || isAdmin();
+      // Reading one's own membership is the bootstrap path used by the app.
+      // Keep get self-only; isAdmin() itself reads this same membership doc.
+      allow get: if request.auth != null && request.auth.uid == memberUid;
+      // The admin collection query powers the in-app role manager.
       allow list: if isAdmin();
 
       // New users may create only a no-access profile for themselves. Existing
