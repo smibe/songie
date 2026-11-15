@@ -1,8 +1,8 @@
 # Songie Flutter application
 
-This is the cross-platform Flutter client for Songie. The current first slice includes:
+This is the cross-platform Flutter client for Songie. The current application includes:
 
-- A searchable demo song library (temporary; the planned production source is a shared Firestore catalog).
+- A searchable shared Firestore song library with public, friends-only, and private visibility.
 - A phone song reader and tablet two-pane library/reader layout.
 - ChordPro chord labels rendered as plain text above lyric positions.
 - Persistent chord visibility and lyric text-size settings.
