@@ -457,8 +457,12 @@ class _RoomScreenState extends State<RoomScreen> {
                     }
                   }
                   final openedCount = participants
-                      .where((participant) =>
-                          participant.hasOpened(room.currentSongId))
+                      .where(
+                        (participant) => participant.hasOpened(
+                          room.currentSongId,
+                          room.selectedAt,
+                        ),
+                      )
                       .length;
 
                   return ListView(
