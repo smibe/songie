@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'browser_url_cleaner.dart';
+
 /// Passwordless email-link authentication for the Songie web app.
 class SongieAuthService {
   SongieAuthService(this._auth);
@@ -110,6 +112,7 @@ class SongieAuthService {
 
     final preferences = await SharedPreferences.getInstance();
     await preferences.remove(_pendingEmailKey);
+    clearFirebaseAuthUrl();
     return credential;
   }
 
@@ -125,5 +128,8 @@ class SongieAuthService {
     return true;
   }
 
-  Future<void> signOut() => _auth.signOut();
+  Future<void> signOut() async {
+    await _auth.signOut();
+    clearFirebaseAuthUrl();
+  }
 }
