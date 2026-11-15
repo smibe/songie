@@ -85,7 +85,14 @@ class _SongImportScreenState extends State<SongImportScreen> {
         );
       }
 
-      final text = utf8.decode(bytes);
+      String text;
+      try {
+        text = utf8.decode(bytes);
+      } on FormatException {
+        // Some downloaded chord sheets are saved using a Windows code page.
+        // Latin-1 preserves common German characters in those files.
+        text = latin1.decode(bytes);
+      }
       setState(() {
         _textController.text = text;
         _selectedFileName = file.name;
@@ -107,6 +114,11 @@ class _SongImportScreenState extends State<SongImportScreen> {
     FocusScope.of(context).unfocus();
 
     try {
+      if (utf8.encode(_textController.text).length > _maximumSourceBytes) {
+        throw const FormatException(
+          'The pasted song text is larger than the 900 KB import limit.',
+        );
+      }
       final result =
           const SongSourceImporter().importSource(_textController.text);
       if (utf8.encode(result.source).length > _maximumSourceBytes) {
@@ -181,7 +193,8 @@ class _SongImportScreenState extends State<SongImportScreen> {
 
   String _friendlySaveError(Object error) {
     final message = error.toString();
-    if (message.contains('already-exists') ||
+    if (message.contains('already exists') ||
+        message.contains('already-exists') ||
         message.contains('ALREADY_EXISTS')) {
       return 'A song with this title already exists. Rename the song before importing it again.';
     }
