@@ -90,9 +90,9 @@ The app includes live singing rooms for active friends and administrators. A roo
 
 Each participant has a document in `rooms/{roomCode}/participants/{uid}`. It stores their display name, email, room role, and the song they last opened. The owner can close the room; other participants can leave. Rooms are limited to 30 participants in the first version.
 
-Clients listen to the room and participant documents with Firestore snapshots. A new suggestion appears immediately in an open room. Each participant activates the suggestion on their own device, preserving their own font size, chord visibility, and reading position. QR invitations contain a web link with the room code; the app opens the join flow after the user has signed in and has friend/admin access.
+Clients listen to the room and participant documents with Firestore snapshots. A new suggestion produces an in-app notification anywhere in Songie while the app is running, including while a participant is reading another song. The notification can return the participant to the room. Each participant activates the suggestion on their own device, preserving their own font size, chord visibility, and reading position. QR invitations contain a web link with the room code; the app preserves the invitation through email-link sign-in and opens the join flow once the user has friend/admin access.
 
-This first version provides in-app realtime updates while Songie is open. Push notifications while the app is closed, synchronized scrolling, setlists, owner transfer, and participant removal are later refinements.
+This first version provides in-app realtime updates while Songie is running. Push notifications while the app is closed, synchronized scrolling, setlists, owner transfer, and participant removal are later refinements.
 
 ## Firebase services
 
