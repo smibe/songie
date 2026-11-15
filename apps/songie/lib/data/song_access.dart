@@ -26,16 +26,25 @@ enum SongVisibility {
 }
 
 enum SongieMemberRole {
+  none,
   friend,
   admin;
 
-  static SongieMemberRole? fromValue(Object? value) {
+  static SongieMemberRole fromValue(Object? value) {
     return switch (value) {
       'friend' => SongieMemberRole.friend,
       'admin' => SongieMemberRole.admin,
-      _ => null,
+      _ => SongieMemberRole.none,
     };
   }
+
+  String get firestoreValue => name;
+
+  String get label => switch (this) {
+    SongieMemberRole.none => 'Keine',
+    SongieMemberRole.friend => 'Freund',
+    SongieMemberRole.admin => 'Admin',
+  };
 }
 
 /// A server-managed membership entry for the current Firebase user.
@@ -43,6 +52,7 @@ class SongieMembership {
   const SongieMembership({
     required this.uid,
     required this.email,
+    required this.displayName,
     required this.role,
     required this.active,
   });
@@ -54,6 +64,9 @@ class SongieMembership {
     return SongieMembership(
       uid: uid,
       email: data['email'] is String ? data['email'] as String : '',
+      displayName: data['displayName'] is String
+          ? data['displayName'] as String
+          : '',
       role: SongieMemberRole.fromValue(data['role']),
       active: data['active'] == true,
     );
@@ -61,7 +74,8 @@ class SongieMembership {
 
   final String uid;
   final String email;
-  final SongieMemberRole? role;
+  final String displayName;
+  final SongieMemberRole role;
   final bool active;
 
   SongCatalogAccess get catalogAccess {
@@ -69,7 +83,7 @@ class SongieMembership {
     return switch (role) {
       SongieMemberRole.admin => SongCatalogAccess.admin,
       SongieMemberRole.friend => SongCatalogAccess.friend,
-      null => SongCatalogAccess.public,
+      SongieMemberRole.none => SongCatalogAccess.public,
     };
   }
 }
