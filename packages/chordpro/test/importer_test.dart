@@ -2,7 +2,7 @@ import 'package:chordpro/chordpro.dart';
 import 'package:test/test.dart';
 
 void main() {
-  const importer = SongSourceImporter();
+  final importer = SongSourceImporter();
   const parser = ChordProParser();
 
   group('SongSourceImporter', () {
