@@ -81,41 +81,46 @@ class FirestoreRoomRepository {
     for (var attempt = 0; attempt < 5; attempt++) {
       final code = _generateCode();
       final roomReference = _rooms.doc(code);
-      final existing = await roomReference.get();
-      if (existing.exists) continue;
-
-      final now = FieldValue.serverTimestamp();
-      final batch = _firestore.batch();
-      batch.set(roomReference, {
-        'name': normalizedName,
-        'ownerUid': uid,
-        'ownerName': displayName,
-        'status': 'active',
-        'participantUids': [uid],
-        'currentSongId': null,
-        'currentSongTitle': null,
-        'currentSongArtist': null,
-        'selectedByUid': null,
-        'selectedByName': null,
-        'selectedAt': null,
-        'closedAt': null,
-        'createdAt': now,
-        'updatedAt': now,
-      });
-      batch.set(roomReference.collection('participants').doc(uid), {
-        'uid': uid,
-        'displayName': displayName,
-        'email': email,
-        'role': 'owner',
-        'openedSongId': null,
-        'lastOpenedSongAt': null,
-        'joinedAt': now,
-      });
       try {
-        await batch.commit();
+        await _firestore.runTransaction((transaction) async {
+          final existing = await transaction.get(roomReference);
+          if (existing.exists) {
+            throw StateError('room-code-collision');
+          }
+
+          final now = FieldValue.serverTimestamp();
+          transaction.set(roomReference, {
+            'name': normalizedName,
+            'ownerUid': uid,
+            'ownerName': displayName,
+            'status': 'active',
+            'participantUids': [uid],
+            'currentSongId': null,
+            'currentSongTitle': null,
+            'currentSongArtist': null,
+            'selectedByUid': null,
+            'selectedByName': null,
+            'selectedAt': null,
+            'closedAt': null,
+            'createdAt': now,
+            'updatedAt': now,
+          });
+          transaction.set(
+            roomReference.collection('participants').doc(uid),
+            {
+              'uid': uid,
+              'displayName': displayName,
+              'email': email,
+              'role': 'owner',
+              'openedSongId': null,
+              'lastOpenedSongAt': null,
+              'joinedAt': now,
+            },
+          );
+        });
         return code;
-      } on FirebaseException catch (error) {
-        if (error.code == 'already-exists' && attempt < 4) continue;
+      } on StateError catch (error) {
+        if (error.message == 'room-code-collision' && attempt < 4) continue;
         rethrow;
       }
     }
