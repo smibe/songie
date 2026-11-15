@@ -34,6 +34,7 @@ class SongieAuthService {
 
   /// Preserves a room invitation across email-link authentication redirects.
   Future<void> capturePendingRoomCode() async {
+    if (!kIsWeb) return;
     final currentUri = Uri.base;
     var roomCode = currentUri.queryParameters['room'];
 
