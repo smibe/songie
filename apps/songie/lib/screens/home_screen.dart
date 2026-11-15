@@ -192,7 +192,11 @@ class _HomeScreenState extends State<HomeScreen> {
     if (code == null ||
         code.trim().isEmpty ||
         _pendingRoomNavigationStarted ||
-        !_canJoinRooms) {
+        membership == null ||
+        !membership.active ||
+        membership.role == SongieMemberRole.none ||
+        membership.displayName.trim().isEmpty ||
+        _user == null) {
       return;
     }
 
