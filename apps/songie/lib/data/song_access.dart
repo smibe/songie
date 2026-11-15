@@ -47,7 +47,7 @@ enum SongieMemberRole {
   };
 }
 
-/// A server-managed membership entry for the current Firebase user.
+/// A user profile with role and active access controlled by administrators.
 class SongieMembership {
   const SongieMembership({
     required this.uid,
