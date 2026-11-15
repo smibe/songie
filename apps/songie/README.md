@@ -57,7 +57,8 @@ To run against a connected device, select it with `flutter devices` or pass `-d 
 - Firebase Authentication email-link sign-in is currently implemented for the web app. Android/iOS deep-link sign-in is not wired yet.
 - Song visibility has three levels: `public`, `friends`, and `private`. A sign-in alone grants no protected access; an admin must create an active membership.
 - Friend and administrator membership is managed initially with the trusted CLI in `../../tools/catalog-seed`.
-- Public catalog reads do not require a user account. Firestore Security Rules restrict client writes to users with a trusted `admin` custom claim.
+- Active administrators see an **Import song** menu. They can paste ChordPro or supported aligned text chord sheets, select a `.pro`, `.chopro`, `.chordpro`, `.cho`, or `.txt` file, preview the parsed song, and save it with a visibility and publication setting.
+- Public catalog reads do not require a user account. Firestore Security Rules restrict catalog writes to users whose server-managed `members/{uid}` document has an active `admin` role.
 - The generated `lib/firebase_options.dart` is required to build the app. It contains Firebase app identifiers, not service-account private credentials; commit it so other developers and CI can build the project.
 - Firestore rules and indexes live at the repository root. Deploy them from the repository root with `firebase deploy --only firestore:rules,firestore:indexes` after linking the Firebase project with `firebase use --add`.
 - The first published song can be added manually in Firebase Console using the instructions in `../../docs/firestore-catalog.md`.
