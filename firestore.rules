@@ -157,8 +157,14 @@ service cloud.firestore {
           && request.resource.data.updatedAt == request.time;
       }
 
+      function roomSongMetadataMatches(songId) {
+        return request.resource.data.currentSongTitle
+            == get(songPath(songId)).data.title
+          && request.resource.data.currentSongArtist
+            == get(songPath(songId)).data.artist;
+      }
+
       function validRoomSongUpdate() {
-        let song = get(songPath(request.resource.data.currentSongId)).data;
         return isRoomOwner(roomId)
           && resource.data.status == 'active'
           && request.resource.data.status == 'active'
@@ -173,8 +179,7 @@ service cloud.firestore {
               'updatedAt'
             ])
           && isGroupReadableSong(request.resource.data.currentSongId)
-          && request.resource.data.currentSongTitle == song.title
-          && request.resource.data.currentSongArtist == song.artist
+          && roomSongMetadataMatches(request.resource.data.currentSongId)
           && request.resource.data.selectedByUid == request.auth.uid
           && request.resource.data.selectedByName
             == get(memberPath(request.auth.uid)).data.displayName
@@ -275,7 +280,7 @@ service cloud.firestore {
             == get(memberPath(request.auth.uid)).data.email
           && request.resource.data.role
             == (
-              get(roomPath(roomId)).data.ownerUid == request.auth.uid
+              getAfter(roomPath(roomId)).data.ownerUid == request.auth.uid
                 ? 'owner'
                 : 'member'
             )
