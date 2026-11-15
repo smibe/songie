@@ -8,9 +8,9 @@ import '../auth/songie_auth_service.dart';
 import '../data/firestore_room_repository.dart';
 import '../data/membership_repository.dart';
 import '../data/song.dart';
-import '../data/songie_room.dart';
 import '../data/song_access.dart';
 import '../data/song_repository.dart';
+import '../data/songie_room.dart';
 import '../settings/songie_settings.dart';
 import 'member_management_screen.dart';
 import 'profile_setup_screen.dart';
@@ -151,6 +151,11 @@ class _HomeScreenState extends State<HomeScreen> {
       (rooms) => _onMyRoomsChanged(user.uid, rooms),
       onError: (Object error) {
         debugPrint('Could not watch room suggestions: $error');
+        if (_roomsSubscriptionUid == user.uid) {
+          _roomsSubscriptionUid = null;
+          _roomsSubscription = null;
+          _roomSuggestionKeys.clear();
+        }
       },
     );
   }
