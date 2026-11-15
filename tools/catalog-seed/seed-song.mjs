@@ -10,21 +10,21 @@ import { normalizeSongSource } from './song-source.mjs';
 function usage() {
   console.error([
     'Usage:',
-    '  node seed-song.mjs <song.pro|song.chopro|song.txt> [--id <document-id>] [--project <project-id>] [--publish]',
+    '  node seed-song.mjs <song1.pro|song1.txt> [song2.pro|song2.txt ...] [--project <project-id>] [--publish]',
     '',
     'Options:',
-    '  --id       Firestore document ID. Defaults to a slug generated from the title.',
+    '  --id       Firestore document ID. Only valid when importing one file.',
     '  --project  Firebase project ID. Defaults to songie-prod.',
-    '  --publish  Publish immediately. Without this flag the song is created as a draft.',
+    '  --publish  Publish immediately. Without this flag songs are created as drafts.',
     '  --visibility  public, friends (default), or private.',
     '',
-    'The script creates a new document and never overwrites an existing one.',
+    'Multiple source files are imported sequentially. Existing songs are never overwritten.',
   ].join('\n'));
 }
 
 function parseArguments(argv) {
   const options = {
-    sourcePath: null,
+    sourcePaths: [],
     documentId: null,
     projectId: process.env.GOOGLE_CLOUD_PROJECT
       ?? process.env.GCLOUD_PROJECT
@@ -72,16 +72,16 @@ function parseArguments(argv) {
       throw new Error('Unknown option: ' + argument);
     }
 
-    if (options.sourcePath !== null) {
-      throw new Error('Only one ChordPro source file can be imported at a time.');
-    }
-
-    options.sourcePath = argument;
+    options.sourcePaths.push(argument);
   }
 
-  if (!options.sourcePath) {
+  if (options.sourcePaths.length === 0) {
     usage();
-    throw new Error('A song source file is required.');
+    throw new Error('At least one song source file is required.');
+  }
+
+  if (options.sourcePaths.length > 1 && options.documentId !== null) {
+    throw new Error('--id can only be used when importing exactly one file.');
   }
 
   return options;
@@ -116,9 +116,8 @@ function createDocumentId(title) {
     .replace(/^-+|-+$/g, '');
 }
 
-async function main() {
-  const options = parseArguments(process.argv.slice(2));
-  const sourcePath = resolve(process.cwd(), options.sourcePath);
+async function importSong(db, sourcePathArgument, options) {
+  const sourcePath = resolve(process.cwd(), sourcePathArgument);
   const inputSource = await readFile(sourcePath, 'utf8');
   const normalized = normalizeSongSource(inputSource);
   const source = normalized.source;
@@ -136,29 +135,13 @@ async function main() {
   const key = readDirective(source, ['key', 'k']);
   const documentId = options.documentId ?? createDocumentId(title);
 
-  if (!['public', 'friends', 'private'].includes(options.visibility)) {
-    throw new Error('Visibility must be public, friends, or private.');
-  }
-
   if (!/^[a-z0-9][a-z0-9-]{0,127}$/.test(documentId)) {
     throw new Error(
       'Document ID must contain 1-128 lowercase letters, digits, or hyphens, and start with a letter or digit.',
     );
   }
 
-  if (!options.projectId) {
-    throw new Error('Firebase project ID is empty. Use --project <project-id>.');
-  }
-
-  initializeApp({
-    credential: applicationDefault(),
-    projectId: options.projectId,
-  });
-
-  const db = getFirestore();
-  const document = db.collection('songs').doc(documentId);
   const now = FieldValue.serverTimestamp();
-
   const song = {
     title,
     artist,
@@ -172,22 +155,60 @@ async function main() {
     updatedAt: now,
   };
 
+  const document = db.collection('songs').doc(documentId);
   try {
     await document.create(song);
   } catch (error) {
     if (error.code === 6 || error.code === 'already-exists') {
       throw new Error(
-        'Song "' + documentId + '" already exists. Nothing was changed; choose another --id or edit it in the admin workflow.',
+        'Song "' + documentId + '" already exists. Nothing was changed.',
       );
     }
     throw error;
   }
 
-  console.log('Created songs/' + documentId + ' in project ' + options.projectId + '.');
-  console.log('Title: ' + title);
-  console.log('Input format: ' + normalized.format);
-  console.log('Published: ' + options.published);
-  console.log('Visibility: ' + options.visibility);
+  console.log(
+    'Created songs/' + documentId + ' — ' + title + ' (' + normalized.format + ').',
+  );
+}
+
+async function main() {
+  const options = parseArguments(process.argv.slice(2));
+
+  if (!['public', 'friends', 'private'].includes(options.visibility)) {
+    throw new Error('Visibility must be public, friends, or private.');
+  }
+
+  if (!options.projectId) {
+    throw new Error('Firebase project ID is empty. Use --project <project-id>.');
+  }
+
+  initializeApp({
+    credential: applicationDefault(),
+    projectId: options.projectId,
+  });
+
+  const db = getFirestore();
+  let created = 0;
+  let failed = 0;
+
+  for (const sourcePath of options.sourcePaths) {
+    try {
+      await importSong(db, sourcePath, options);
+      created += 1;
+    } catch (error) {
+      failed += 1;
+      console.error('Failed: ' + sourcePath);
+      console.error('  ' + error.message);
+    }
+  }
+
+  console.log('');
+  console.log('Import finished: ' + created + ' created, ' + failed + ' failed.');
+
+  if (failed > 0) {
+    process.exitCode = 1;
+  }
 }
 
 main().catch((error) => {
