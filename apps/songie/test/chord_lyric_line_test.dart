@@ -53,7 +53,7 @@ void main() {
       text: lyricText,
       chords: const [
         ChordPlacement(symbol: 'C', position: 0),
-        ChordPlacement(symbol: 'G', position: 48),
+        ChordPlacement(symbol: 'G', position: 45),
       ],
     );
 
@@ -83,6 +83,14 @@ void main() {
     expect(lyricRows.length, greaterThan(1));
     expect(find.text('C'), findsOneWidget);
     expect(find.text('G'), findsOneWidget);
+
+    final rowStartingWithBefore = lyricRows.firstWhere(
+      (widget) => widget.data!.startsWith('before'),
+    );
+    final chordRect = tester.getRect(find.text('G'));
+    final lyricRect = tester.getRect(find.text(rowStartingWithBefore.data!));
+    expect(lyricRect.top - chordRect.bottom, lessThan(12));
+
     expect(tester.takeException(), isNull);
   });
 }
