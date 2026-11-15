@@ -5,7 +5,7 @@ Songie is a cross-platform shared songbook for groups who want to sing and play 
 ## Project structure
 
 - `packages/chordpro/` — UI-independent Dart ChordPro parser, song model, and music utilities.
-- `apps/songie/` — Flutter app for the shared song library, song reader, settings, and tablet performance mode.
+- `apps/songie/` — Flutter app for the shared song library, song reader, live singing rooms, settings, and tablet performance mode.
 - `docs/` — architecture, UI guidelines, and Firestore catalog schema.
 - `firestore.rules` / `firestore.indexes.json` — shared catalog security and query index.
 
@@ -17,7 +17,7 @@ See [`docs/firestore-catalog.md`](docs/firestore-catalog.md) for the document sc
 
 ## Flutter application
 
-The app supports Android, iOS, and Web from one Flutter codebase. It includes a searchable catalog, phone song reader, tablet two-pane browsing, full-screen tablet performance mode, and persistent chord-visibility / lyric-size preferences.
+The app supports Android, iOS, and Web from one Flutter codebase. It includes a searchable catalog, phone song reader, live rooms with QR invitations and realtime song suggestions, tablet two-pane browsing, full-screen tablet performance mode, and persistent chord-visibility / lyric-size preferences.
 
 See [`apps/songie/README.md`](apps/songie/README.md) for setup and run instructions.
 
