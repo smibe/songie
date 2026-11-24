@@ -28,3 +28,10 @@ build/
 # OS files
 .DS_Store
 Thumbs.db
+
+# song samples
+tools/catalog-seed/samples/
+
+# Local tooling artifacts
+/.firebase/
+/packages/chordpro/pubspec.lock
