@@ -132,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
             membership?.role == SongieMemberRole.admin) &&
         membership!.displayName.trim().isNotEmpty;
 
-    if (!canWatch || user == null) {
+    if (!canWatch) {
       unawaited(_roomsSubscription?.cancel());
       _roomsSubscription = null;
       _roomsSubscriptionUid = null;
